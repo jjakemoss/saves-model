@@ -1,6 +1,7 @@
 class HockeyGame:
     def __init__(
-        self, 
+        self,
+        game_id: str = "",
         is_home: bool = False, 
         opponent: str = "", 
         shots_for: int = 0, 
@@ -23,6 +24,7 @@ class HockeyGame:
         :param goalie_saves: (int) Number of saves made by the goalie
         :param back_to_back: (bool) Whether the team is playing on back-to-back days
         """
+        self.game_id: str = game_id
         self.is_home: bool = is_home
         self.opponent: str = opponent
         self.shots_for: int = shots_for
