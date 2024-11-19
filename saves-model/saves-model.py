@@ -5,6 +5,8 @@ from nhlpy import NHLClient
 from abbreviations import *
 from teamFileClass import HockeyGame
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -15,82 +17,91 @@ def create_shedule_csvs():
     os.makedirs("team_schedules", exist_ok=True)
 
     client = NHLClient()
-    for team in nhl_team_abbreviations:
-        csv_file_path = f"team_schedules/{team}_schedule.csv"
-        existing_game_ids = []
 
-        # Check if the CSV file exists and load existing game IDs
-        if os.path.exists(csv_file_path):
-            with open(csv_file_path, mode="r", newline="") as file:
-                csv_reader = csv.reader(file)
-                next(csv_reader, None)  # Skip header if it exists
-                for row in csv_reader:
-                    if row:  # Ensure the row is not empty
-                        existing_game_ids.append(row[0])  # Assuming game_id is the first column
+    # Create a ThreadPoolExecutor with a number of worker threads
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        # Submit a task for each team to be processed in parallel
+        for team in nhl_team_abbreviations:
+            executor.submit(process_team_schedule, team, client)
 
-        with open(csv_file_path, mode="a", newline="") as file:
-            csv_writer = csv.writer(file)
+
+def process_team_schedule(team: str, client: NHLClient):
+    csv_file_path = f"team_schedules/{team}_schedule.csv"
+    existing_game_ids = set()
+
+    # Check if the CSV file exists and load existing game IDs
+    if os.path.exists(csv_file_path):
+        with open(csv_file_path, mode="r", newline="") as file:
+            csv_reader = csv.reader(file)
+            header = next(csv_reader, None)  # Skip header if it exists
+            for row in csv_reader:
+                if row:  # Ensure the row is not empty
+                    existing_game_ids.add(row[0])  # Assuming game_id is the first column
+
+    # Open the file in append mode, so we don't overwrite existing data
+    with open(csv_file_path, mode="a", newline="") as file:
+        csv_writer = csv.writer(file)
+        
+        # Write the header row only if the file was just created
+        if not existing_game_ids:
+            csv_writer.writerow([
+                "gameID", "isHome", "opponent", "shotsFor", "shotsAgainst", 
+                "goalsFor", "goalsAgainst", "goalie", "goalieSaves", 
+                "goalieShots", "backToBack"
+            ])
+        
+        logging.info(f"Processing schedule for team: {team}")
+        try:
+            # Fetch the schedule and process each game
+            schedule = client.schedule.get_season_schedule(team_abbr=team, season="20242025")
+            prev_game = None
             
-            # Write the header row only if the file was just created
-            if not existing_game_ids:
-                csv_writer.writerow([
-                    "gameID", "isHome", "opponent", "shotsFor", "shotsAgainst", 
-                    "goalsFor", "goalsAgainst", "goalie", "goalieSaves", 
-                    "goalieShots", "backToBack"
-                ])
-            
-            logging.info(f"Processing schedule for team: {team}")
-            try:
-                # Fetch the schedule and process each game
-                schedule = client.schedule.get_season_schedule(team_abbr=team, season="20242025")
-                prev_game = None
+            for game in schedule['games']:
+                if game['gameType'] != 2:
+                    logging.info(f"Skipping non-regular-season game")
+                    continue
                 
-                for game in schedule['games']:
-                    if (game['gameType'] != 2):
-                        logging.info(f"Skipping non-regular-season game")
+                curr_game_date = datetime.strptime(game['gameDate'], '%Y-%m-%d').date()
+                if (datetime.now().date() - curr_game_date).days <= 0:
+                    logging.info(f"Skipping future game {game['id']}.")
+                    continue
+                
+                game_id = game['id']
+                if str(game_id) in existing_game_ids:
+                    logging.info(f"Skipping already processed game {game_id} for team {team}.")
+                    continue
+                
+                try:
+                    boxscore = client.game_center.boxscore(game_id=game_id)
+                    if not boxscore or 'homeTeam' not in boxscore or 'awayTeam' not in boxscore:
+                        logging.warning(f"Skipping game {game_id} due to incomplete data.")
                         continue
 
-                    curr_game_date = datetime.strptime(game['gameDate'], '%Y-%m-%d').date()
-                    if (datetime.now().date() - curr_game_date).days <= 0:
-                        logging.info(f"Skipping future game {game_id}.")
-                        continue
+                    game_stats = HockeyGame()
+                    game_stats.game_id = game_id
+                    home_team = boxscore['homeTeam']
+                    away_team = boxscore['awayTeam']
                     
-                    game_id = game['id']
-                    if str(game_id) in existing_game_ids:
-                        logging.info(f"Skipping already processed game {game_id} for team {team}.")
-                        continue
+                    if home_team['abbrev'] == team:
+                        stats = parse_team_stats(True, prev_game, boxscore, game_stats, home_team, away_team)
+                    else:
+                        stats = parse_team_stats(False, prev_game, boxscore, game_stats, home_team, away_team)
                     
-                    try:
-                        boxscore = client.game_center.boxscore(game_id=game_id)
-                        if not boxscore or 'homeTeam' not in boxscore or 'awayTeam' not in boxscore:
-                            logging.warning(f"Skipping game {game_id} due to incomplete data.")
-                            continue
+                    # Write the game stats to the CSV file
+                    csv_writer.writerow([
+                        stats.game_id, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
+                        stats.goals_for, stats.goals_against, stats.goalie, stats.goalie_saves,
+                        stats.goalie_shots, stats.back_to_back
+                    ])
+                    
+                    logging.info(f"Added game {game_id} for team {team}.")
+                    prev_game = boxscore
 
-                        game_stats = HockeyGame()
-                        game_stats.game_id = game_id
-                        home_team = boxscore['homeTeam']
-                        away_team = boxscore['awayTeam']
-                        
-                        if home_team['abbrev'] == team:
-                            stats = parse_team_stats(True, prev_game, boxscore, game_stats, home_team, away_team)
-                        else:
-                            stats = parse_team_stats(False, prev_game, boxscore, game_stats, home_team, away_team)
-                        
-                        # Write the game stats to the CSV file
-                        csv_writer.writerow([
-                            stats.game_id, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
-                            stats.goals_for, stats.goals_against, stats.goalie, stats.goalie_saves,
-                            stats.goalie_shots, stats.back_to_back
-                        ])
-                        
-                        logging.info(f"Added game {game_id} for team {team}.")
-                        prev_game = boxscore
+                except Exception as game_error:
+                    logging.error(f"Error processing game {game_id}: {game_error}")
 
-                    except Exception as game_error:
-                        logging.error(f"Error processing game {game_id}: {game_error}")
-
-            except Exception as team_error:
-                logging.error(f"Error processing team {team}: {team_error}")
+        except Exception as team_error:
+            logging.error(f"Error processing team {team}: {team_error}")
 
 
 def parse_team_stats(
