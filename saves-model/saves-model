@@ -1,0 +1,54 @@
+import pickle
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+
+# Load the model
+with open('goalie_saves_model.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+# Example team and goalie data (replace with your actual team and goalie lists)
+teams = ['Team_A', 'Team_B', 'Team_C']  # Example list of teams
+goalies = ['Goalie_1', 'Goalie_2', 'Goalie_3']  # Example list of goalies
+
+# Encode the teams and goalies using LabelEncoder
+team_encoder = LabelEncoder()
+goalie_encoder = LabelEncoder()
+
+team_encoder.fit(teams)
+goalie_encoder.fit(goalies)
+
+# Function to get the predicted saves for the goalies
+def get_goalie_saves_probability(home_team, away_team, home_goalie, away_goalie):
+    # Encode the input data
+    home_team_encoded = team_encoder.transform([home_team])[0]
+    away_team_encoded = team_encoder.transform([away_team])[0]
+    home_goalie_encoded = goalie_encoder.transform([home_goalie])[0]
+    away_goalie_encoded = goalie_encoder.transform([away_goalie])[0]
+
+    # Prepare the input features for prediction
+    input_features = np.array([[home_team_encoded, away_team_encoded, home_goalie_encoded, away_goalie_encoded]])
+
+    # Predict the saves for both goalies using the loaded model
+    predicted_saves = model.predict(input_features)
+
+    return predicted_saves
+
+# Taking input from the user
+home_team = input("Enter the home team: ")
+away_team = input("Enter the away team: ")
+home_goalie = input("Enter the home goalie: ")
+away_goalie = input("Enter the away goalie: ")
+
+# Ensure inputs are valid
+if home_team not in teams or away_team not in teams:
+    print("Invalid team name. Please make sure the teams are correct.")
+else:
+    if home_goalie not in goalies or away_goalie not in goalies:
+        print("Invalid goalie name. Please make sure the goalies are correct.")
+    else:
+        # Get the predicted saves for the goalies
+        predicted_saves = get_goalie_saves_probability(home_team, away_team, home_goalie, away_goalie)
+
+        # Output the predicted saves
+        print(f"Predicted saves for {home_goalie}: {predicted_saves[0][0]}")
+        print(f"Predicted saves for {away_goalie}: {predicted_saves[0][1]}")

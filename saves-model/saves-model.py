@@ -21,7 +21,7 @@ def create_shedule_csvs():
     # Create a ThreadPoolExecutor with a number of worker threads
     with ThreadPoolExecutor(max_workers=8) as executor:
         # Submit a task for each team to be processed in parallel
-        for team in nhl_team_abbreviations:
+        for team in nhl_team_abbreviations_2024:
             executor.submit(process_team_schedule, team, client)
 
 
@@ -53,7 +53,7 @@ def process_team_schedule(team: str, client: NHLClient):
         logging.info(f"Processing schedule for team: {team}")
         try:
             # Fetch the schedule and process each game
-            schedule = client.schedule.get_season_schedule(team_abbr=team, season="20242025")
+            schedule = client.schedule.get_season_schedule(team_abbr=team, season="20232024")
             prev_game = None
             
             for game in schedule['games']:
