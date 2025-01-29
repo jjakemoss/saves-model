@@ -3,8 +3,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 
-# Load your combined dataset with rolling averages
-combined_df = pd.read_csv("combined_with_rolling_averages.csv")
+# Load the combined dataset with rolling averages
+combined_df = pd.read_csv("combined_simplified.csv")
 
 # Prepare features and target variables for both teams
 X_home = []
@@ -15,26 +15,26 @@ y_away = []
 # Function to get matchup data based on team names and game_id
 def get_matchup_data(team1, team2, game_id):
     # Get the relevant data for team1 (home team)
-    team1_data = combined_df[(combined_df['team'] == team1) & (combined_df['gameID'] <= game_id)]
-    team1_rolling_saves = team1_data['teamSaves_rolling'].tail(1).values[0]
-    team1_rolling_opponent_saves = team1_data['opponentSaves_rolling'].tail(1).values[0]
-    team1_backToBack = team1_data['backToBack'].tail(1).values[0]
-    team1_isHome = team1_data['isHome'].tail(1).values[0]
-    team1_goalsFor = team1_data['goalsFor'].tail(1).values[0]
-    team1_goalsAgainst = team1_data['goalsAgainst'].tail(1).values[0]
-    team1_shotsFor = team1_data['shotsFor'].tail(1).values[0]
-    team1_shotsAgainst = team1_data['shotsAgainst'].tail(1).values[0]
+    team1_data = combined_df[(combined_df['home_team'] == team1) & (combined_df['gameID'] <= game_id)]
+    team1_rolling_saves = team1_data['home_teamSaves_rolling'].tail(1).values[0]
+    team1_rolling_opponent_saves = team1_data['home_opponentSaves_rolling'].tail(1).values[0]
+    team1_backToBack = team1_data['home_backToBack'].tail(1).values[0]
+    team1_isHome = team1_data['isHome_x'].tail(1).values[0]
+    team1_goalsFor = team1_data['home_goalsFor'].tail(1).values[0]
+    team1_goalsAgainst = team1_data['home_goalsAgainst'].tail(1).values[0]
+    team1_shotsFor = team1_data['home_shotsFor'].tail(1).values[0]
+    team1_shotsAgainst = team1_data['home_shotsAgainst'].tail(1).values[0]
 
     # Get the relevant data for team2 (away team)
-    team2_data = combined_df[(combined_df['team'] == team2) & (combined_df['gameID'] <= game_id)]
-    team2_rolling_saves = team2_data['teamSaves_rolling'].tail(1).values[0]
-    team2_rolling_opponent_saves = team2_data['opponentSaves_rolling'].tail(1).values[0]
-    team2_backToBack = team2_data['backToBack'].tail(1).values[0]
-    team2_isHome = team2_data['isHome'].tail(1).values[0]
-    team2_goalsFor = team2_data['goalsFor'].tail(1).values[0]
-    team2_goalsAgainst = team2_data['goalsAgainst'].tail(1).values[0]
-    team2_shotsFor = team2_data['shotsFor'].tail(1).values[0]
-    team2_shotsAgainst = team2_data['shotsAgainst'].tail(1).values[0]
+    team2_data = combined_df[(combined_df['away_team'] == team2) & (combined_df['gameID'] <= game_id)]
+    team2_rolling_saves = team2_data['away_teamSaves_rolling'].tail(1).values[0]
+    team2_rolling_opponent_saves = team2_data['away_opponentSaves_rolling'].tail(1).values[0]
+    team2_backToBack = team2_data['away_backToBack'].tail(1).values[0]
+    team2_isHome = team2_data['isHome_y'].tail(1).values[0]
+    team2_goalsFor = team2_data['away_goalsFor'].tail(1).values[0]
+    team2_goalsAgainst = team2_data['away_goalsAgainst'].tail(1).values[0]
+    team2_shotsFor = team2_data['away_shotsFor'].tail(1).values[0]
+    team2_shotsAgainst = team2_data['away_shotsAgainst'].tail(1).values[0]
 
     # Return a dictionary with the features for the matchup
     return {
@@ -58,46 +58,35 @@ def get_matchup_data(team1, team2, game_id):
 
 # Iterate through the combined dataframe to build the training data
 for i, row in combined_df.iterrows():
-    team1 = row['team']
-    team1_rolling_saves = row['teamSaves_rolling']
-    team1_rolling_opponent_saves = row['opponentSaves_rolling']
-    team1_backToBack = row['backToBack']
-    team1_isHome = row['isHome']
-    team1_goalsFor = row['goalsFor']
-    team1_goalsAgainst = row['goalsAgainst']
-    team1_shotsFor = row['shotsFor']
-    team1_shotsAgainst = row['shotsAgainst']
+    # Home team features
+    team1_rolling_saves = row['home_teamSaves_rolling']
+    team1_rolling_opponent_saves = row['home_opponentSaves_rolling']
+    team1_backToBack = row['home_backToBack']
+    team1_isHome = row['isHome_x']
+    team1_goalsFor = row['home_goalsFor']
+    team1_goalsAgainst = row['home_goalsAgainst']
+    team1_shotsFor = row['home_shotsFor']
+    team1_shotsAgainst = row['home_shotsAgainst']
     
-    # Get the latest opponent data (away team)
-    opponent_data = combined_df[(combined_df['team'] == row['opponent']) & (combined_df['gameID'] <= row['gameID'])].tail(1)
-    if not opponent_data.empty:
-        team2_rolling_saves = opponent_data['teamSaves_rolling'].values[0]
-        team2_rolling_opponent_saves = opponent_data['opponentSaves_rolling'].values[0]
-        team2_backToBack = opponent_data['backToBack'].values[0]
-        team2_isHome = opponent_data['isHome'].values[0]
-        team2_goalsFor = opponent_data['goalsFor'].values[0]
-        team2_goalsAgainst = opponent_data['goalsAgainst'].values[0]
-        team2_shotsFor = opponent_data['shotsFor'].values[0]
-        team2_shotsAgainst = opponent_data['shotsAgainst'].values[0]
-    else:
-        team2_rolling_saves = 0
-        team2_rolling_opponent_saves = 0
-        team2_backToBack = False
-        team2_isHome = False
-        team2_goalsFor = 0
-        team2_goalsAgainst = 0
-        team2_shotsFor = 0
-        team2_shotsAgainst = 0
+    # Away team features
+    team2_rolling_saves = row['away_teamSaves_rolling']
+    team2_rolling_opponent_saves = row['away_opponentSaves_rolling']
+    team2_backToBack = row['away_backToBack']
+    team2_isHome = row['isHome_y']
+    team2_goalsFor = row['away_goalsFor']
+    team2_goalsAgainst = row['away_goalsAgainst']
+    team2_shotsFor = row['away_shotsFor']
+    team2_shotsAgainst = row['away_shotsAgainst']
     
     # Add features for the home team (team1)
     X_home.append([team1_rolling_saves, team1_rolling_opponent_saves, team1_backToBack, team1_isHome, team1_goalsFor, team1_goalsAgainst, team1_shotsFor, team1_shotsAgainst,
                   team2_rolling_saves, team2_rolling_opponent_saves, team2_backToBack, team2_isHome, team2_goalsFor, team2_goalsAgainst, team2_shotsFor, team2_shotsAgainst])
-    y_home.append(row['teamSaves'])  # Target is home team's saves
+    y_home.append(row['home_teamSaves_rolling'])  # Target is home team's saves
     
     # Add features for the away team (team2)
     X_away.append([team2_rolling_saves, team2_rolling_opponent_saves, team2_backToBack, team2_isHome, team2_goalsFor, team2_goalsAgainst, team2_shotsFor, team2_shotsAgainst,
                   team1_rolling_saves, team1_rolling_opponent_saves, team1_backToBack, team1_isHome, team1_goalsFor, team1_goalsAgainst, team1_shotsFor, team1_shotsAgainst])
-    y_away.append(row['opponentSaves'])  # Target is away team's saves
+    y_away.append(row['away_teamSaves_rolling'])  # Target is away team's saves
 
 # Convert lists to DataFrames
 X_home = pd.DataFrame(X_home, columns=['team1_rolling_saves', 'team1_rolling_opponent_saves', 'team1_backToBack', 'team1_isHome', 'team1_goalsFor', 'team1_goalsAgainst', 'team1_shotsFor', 'team1_shotsAgainst',
@@ -146,4 +135,4 @@ def predict_saves(team1, team2, game_id):
     print(f"Away team ({team2}) saves: {away_prediction[0]:.2f}")
 
 # Example: Predict saves for a new matchup
-predict_saves('ANA', 'CGY', 2023020031)  # Example gameID (update with a real one)
+predict_saves('ANA', 'CGY', 2023020450)  # Example gameID (update with a real one)

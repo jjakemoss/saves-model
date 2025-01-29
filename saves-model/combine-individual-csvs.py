@@ -36,7 +36,51 @@ combined_df['teamSaves_rolling'] = combined_df.groupby('team')['teamSaves'].roll
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling'] = combined_df.groupby('team')['opponentSaves'].rolling(window=window_size, min_periods=1).mean().reset_index(0, drop=True)
 
+combined_df = combined_df.sort_values(by="gameID").reset_index(drop=True)
+
 # Save the updated dataframe to a new CSV file
 combined_df.to_csv("combined_with_rolling_averages.csv", index=False)
 
 print("Updated dataset with rolling averages has been saved to 'combined_with_rolling_averages.csv'")
+
+# Load the combined dataset
+combined_df = pd.read_csv("combined_with_rolling_averages.csv")
+
+# Filter out the necessary columns to preserve the team-specific features
+home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst']
+away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst']
+
+# Split the data into home and away teams
+home_games = combined_df[combined_df['isHome'] == True][home_team_columns]
+away_games = combined_df[combined_df['isHome'] == False][away_team_columns]
+
+# Rename columns for home and away teams to avoid conflict
+home_games = home_games.rename(columns={
+    'teamSaves_rolling': 'home_teamSaves_rolling',
+    'opponentSaves_rolling': 'home_opponentSaves_rolling',
+    'backToBack': 'home_backToBack',
+    'goalsFor': 'home_goalsFor',
+    'goalsAgainst': 'home_goalsAgainst',
+    'shotsFor': 'home_shotsFor',
+    'shotsAgainst': 'home_shotsAgainst',
+    'team': 'home_team',
+    'opponent': 'home_opponent'
+})
+
+away_games = away_games.rename(columns={
+    'teamSaves_rolling': 'away_teamSaves_rolling',
+    'opponentSaves_rolling': 'away_opponentSaves_rolling',
+    'backToBack': 'away_backToBack',
+    'goalsFor': 'away_goalsFor',
+    'goalsAgainst': 'away_goalsAgainst',
+    'shotsFor': 'away_shotsFor',
+    'shotsAgainst': 'away_shotsAgainst',
+    'team': 'away_team',
+    'opponent': 'away_opponent'
+})
+
+# Merge the home and away games on 'gameID' to get one row per game
+merged_df = pd.merge(home_games, away_games, on='gameID', how='inner')
+
+# The final dataset now contains one row per game, with both home and away team data
+merged_df.to_csv('combined_simplified.csv', index=False)
