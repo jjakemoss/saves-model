@@ -1,10 +1,10 @@
 import pandas as pd
 import os
 
-# Folder containing all team CSVs
-csv_folder = "team_schedules"  # Update with your actual path
+# Folder containing all team CSVs (update with your actual path)
+csv_folder = "team_schedules"
 
-# List all CSV files
+# List all CSV files in the folder
 csv_files = [f for f in os.listdir(csv_folder) if f.endswith(".csv")]
 
 # Initialize an empty list to store dataframes
@@ -27,10 +27,16 @@ for file in csv_files:
 # Combine all dataframes into a single dataset
 combined_df = pd.concat(df_list, ignore_index=True)
 
-# Sort by gameID in ascending order
-combined_df = combined_df.sort_values(by="gameID").reset_index(drop=True)
+# Calculate rolling averages for teamSaves and opponentSaves
+window_size = 5  # Define the window size for rolling average
 
-# Save to a new CSV file
-combined_df.to_csv("NHL_combined_data_with_team.csv", index=False)
+# Rolling averages for team saves (for each team)
+combined_df['teamSaves_rolling'] = combined_df.groupby('team')['teamSaves'].rolling(window=window_size, min_periods=1).mean().reset_index(0, drop=True)
 
-print("Combined dataset with team column created successfully!")
+# Rolling averages for opponent saves (for each team)
+combined_df['opponentSaves_rolling'] = combined_df.groupby('team')['opponentSaves'].rolling(window=window_size, min_periods=1).mean().reset_index(0, drop=True)
+
+# Save the updated dataframe to a new CSV file
+combined_df.to_csv("combined_with_rolling_averages.csv", index=False)
+
+print("Updated dataset with rolling averages has been saved to 'combined_with_rolling_averages.csv'")
