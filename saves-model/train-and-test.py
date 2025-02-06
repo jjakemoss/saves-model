@@ -1,10 +1,15 @@
 import pandas as pd
+import logging
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 
 # Load the combined dataset with rolling averages
 combined_df = pd.read_csv("combined_simplified.csv")
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger()
 
 # Prepare features and target variables for both teams
 X_home = []
@@ -100,6 +105,9 @@ home_mae_list = []
 away_mae_list = []
 
 for i in range(1, len(X_home)):  # Starting from the second game to have previous games to train on
+    # Log current game for testing
+    logger.info(f"Training on {i}/{len(X_home)} games, predicting game {i+1}")
+    
     # Use all games before the current game for training
     X_home_train = X_home.iloc[:i]
     y_home_train = y_home.iloc[:i]

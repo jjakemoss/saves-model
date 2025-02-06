@@ -42,8 +42,8 @@ print("Updated dataset with rolling averages has been saved to 'combined_with_ro
 combined_df = pd.read_csv("combined_with_rolling_averages.csv")
 
 # Filter out the necessary columns to preserve the team-specific features
-home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst']
-away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst']
+home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst', 'teamSaves', 'opponentSaves']
+away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'backToBack', 'goalsFor', 'goalsAgainst', 'shotsFor', 'shotsAgainst', 'teamSaves', 'opponentSaves']
 
 # Split the data into home and away teams
 home_games = combined_df[combined_df['isHome'] == True][home_team_columns]
@@ -57,7 +57,9 @@ home_games = home_games.rename(columns={
     'shotsFor': 'home_shotsFor',
     'shotsAgainst': 'home_shotsAgainst',
     'team': 'home_team',
-    'opponent': 'home_opponent'
+    'opponent': 'home_opponent',
+    'teamSaves': 'home_teamSaves',
+    'opponentSaves': 'home_opponentSaves'
 })
 
 away_games = away_games.rename(columns={
@@ -67,7 +69,9 @@ away_games = away_games.rename(columns={
     'shotsFor': 'away_shotsFor',
     'shotsAgainst': 'away_shotsAgainst',
     'team': 'away_team',
-    'opponent': 'away_opponent'
+    'opponent': 'away_opponent',
+    'teamSaves': 'away_teamSaves',
+    'opponentSaves': 'away_opponentSaves'
 })
 
 # Merge the home and away games on 'gameID' to get one row per game
