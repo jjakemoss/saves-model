@@ -54,3 +54,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020824,True,STL,36,19,5,0,19,31,False
 2024020836,True,PHI,32,24,2,0,24,30,False
 2024020855,False,VAN,25,31,0,3,28,25,False
+2024020868,False,CGY,34,29,4,2,27,30,False

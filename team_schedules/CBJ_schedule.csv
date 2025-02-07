@@ -53,3 +53,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020825,False,UTA,23,34,3,2,32,20,True
 2024020840,False,DAL,30,39,3,5,34,27,False
 2024020846,False,BUF,29,21,2,3,18,27,False
+2024020865,True,UTA,22,33,2,3,30,20,False

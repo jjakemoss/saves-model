@@ -13,11 +13,11 @@ error_stats_path = "error_stats.pkl"
 model_home = None
 model_away = None
 
-X_home_columns = ['team1_backToBack', 'team1_isHome', 'team1_goalsFor', 'team1_goalsAgainst', 'team1_shotsFor', 'team1_shotsAgainst',
-                                        'team2_backToBack', 'team2_isHome', 'team2_goalsFor', 'team2_goalsAgainst', 'team2_shotsFor', 'team2_shotsAgainst']
+X_home_columns = ['team1_backToBack', 'team1_isHome', 'team1_rolling_saves', 'team1_rolling_saves_10', 'team1_rolling_saves_15', 'team2_rolling_opponent_saves', 'team2_rolling_opponent_saves_10', 'team2_rolling_opponent_saves_15',
+                    'team2_backToBack', 'team2_isHome']
 
-X_away_columns = ['team2_backToBack', 'team2_isHome', 'team2_goalsFor', 'team2_goalsAgainst', 'team2_shotsFor', 'team2_shotsAgainst',
-                                        'team1_backToBack', 'team1_isHome', 'team1_goalsFor', 'team1_goalsAgainst', 'team1_shotsFor', 'team1_shotsAgainst']
+X_away_columns = ['team2_backToBack', 'team2_isHome', 'team1_rolling_opponent_saves', 'team1_rolling_opponent_saves_10', 'team1_rolling_opponent_saves_15', 'team2_rolling_saves', 'team2_rolling_saves_10', 'team2_rolling_saves_15',
+                    'team1_backToBack', 'team1_isHome']
 
 if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.path.exists(error_stats_path):
     use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
@@ -60,28 +60,32 @@ if model_home == None and model_away == None:
         # Home team features
         team1_backToBack = row['home_backToBack']
         team1_isHome = row['isHome_x']
-        team1_goalsFor = row['home_goalsFor']
-        team1_goalsAgainst = row['home_goalsAgainst']
-        team1_shotsFor = row['home_shotsFor']
-        team1_shotsAgainst = row['home_shotsAgainst']
+        team1_rolling_saves = row['home_teamSaves_rolling']
+        team1_rolling_opponent_saves = row['home_opponentSaves_rolling']
+        team1_rolling_saves_10 = row['home_teamSaves_rolling_10']
+        team1_rolling_opponent_saves_10 = row['home_opponentSaves_rolling_10']
+        team1_rolling_saves_15 = row['home_teamSaves_rolling_15']
+        team1_rolling_opponent_saves_15 = row['home_opponentSaves_rolling_15']
         
         # Away team features
         team2_backToBack = row['away_backToBack']
         team2_isHome = row['isHome_y']
-        team2_goalsFor = row['away_goalsFor']
-        team2_goalsAgainst = row['away_goalsAgainst']
-        team2_shotsFor = row['away_shotsFor']
-        team2_shotsAgainst = row['away_shotsAgainst']
+        team2_rolling_saves = row['away_teamSaves_rolling']
+        team2_rolling_opponent_saves = row['away_opponentSaves_rolling']
+        team2_rolling_saves_10 = row['away_teamSaves_rolling_10']
+        team2_rolling_opponent_saves_10 = row['away_opponentSaves_rolling_10']
+        team2_rolling_saves_15 = row['away_teamSaves_rolling_15']
+        team2_rolling_opponent_saves_15 = row['away_opponentSaves_rolling_15']
         
         # Add features for the home team (team1)
-        X_home.append([team1_backToBack, team1_isHome, team1_goalsFor, team1_goalsAgainst, team1_shotsFor, team1_shotsAgainst,
-                    team2_backToBack, team2_isHome, team2_goalsFor, team2_goalsAgainst, team2_shotsFor, team2_shotsAgainst])
-    # Update targets to use the non-rolling saves columns if you removed the rolling fields
+        X_home.append([team1_backToBack, team1_isHome, team1_rolling_saves, team1_rolling_saves_10, team1_rolling_saves_15, team2_rolling_opponent_saves, team2_rolling_opponent_saves_10, team2_rolling_opponent_saves_15,
+                    team2_backToBack, team2_isHome])
+        # Update targets to use the non-rolling saves columns if you removed the rolling fields
         y_home.append(row['home_teamSaves'])  # Use home_teamSaves (non-rolling)
         
         # Add features for the away team (team2)
-        X_away.append([team2_backToBack, team2_isHome, team2_goalsFor, team2_goalsAgainst, team2_shotsFor, team2_shotsAgainst,
-                    team1_backToBack, team1_isHome, team1_goalsFor, team1_goalsAgainst, team1_shotsFor, team1_shotsAgainst])
+        X_away.append([team2_backToBack, team2_isHome, team1_rolling_opponent_saves, team1_rolling_opponent_saves_10, team1_rolling_opponent_saves_15, team2_rolling_saves, team2_rolling_saves_10, team2_rolling_saves_15,
+                    team1_backToBack, team1_isHome])
         y_away.append(row['away_teamSaves'])  # Target is away team's saves
 
     # Convert lists to DataFrames
@@ -167,34 +171,42 @@ def get_matchup_data(team1, team2):
     team1_data = combined_df[(combined_df['home_team'] == team1)]
     team1_backToBack = team1_data['home_backToBack'].tail(1).values[0]
     team1_isHome = team1_data['isHome_x'].tail(1).values[0]
-    team1_goalsFor = team1_data['home_goalsFor'].tail(1).values[0]
-    team1_goalsAgainst = team1_data['home_goalsAgainst'].tail(1).values[0]
-    team1_shotsFor = team1_data['home_shotsFor'].tail(1).values[0]
-    team1_shotsAgainst = team1_data['home_shotsAgainst'].tail(1).values[0]
+    team1_rolling_saves = team1_data['home_teamSaves_rolling'].tail(1).values[0]
+    team1_rolling_opponent_saves = team1_data['home_opponentSaves_rolling'].tail(1).values[0]
+    team1_rolling_saves_10 = team1_data['home_teamSaves_rolling_10'].tail(1).values[0]
+    team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
+    team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
+    team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]
     team2_backToBack = team2_data['away_backToBack'].tail(1).values[0]
     team2_isHome = team2_data['isHome_y'].tail(1).values[0]
-    team2_goalsFor = team2_data['away_goalsFor'].tail(1).values[0]
-    team2_goalsAgainst = team2_data['away_goalsAgainst'].tail(1).values[0]
-    team2_shotsFor = team2_data['away_shotsFor'].tail(1).values[0]
-    team2_shotsAgainst = team2_data['away_shotsAgainst'].tail(1).values[0]
+    team2_rolling_saves = team2_data['away_teamSaves_rolling'].tail(1).values[0]
+    team2_rolling_opponent_saves = team2_data['away_opponentSaves_rolling'].tail(1).values[0]
+    team2_rolling_saves_10 = team2_data['away_teamSaves_rolling_10'].tail(1).values[0]
+    team2_rolling_opponent_saves_10 = team2_data['away_opponentSaves_rolling_10'].tail(1).values[0]
+    team2_rolling_saves_15 = team2_data['away_teamSaves_rolling_15'].tail(1).values[0]
+    team2_rolling_opponent_saves_15 = team2_data['away_opponentSaves_rolling_15'].tail(1).values[0]
 
     # Return a dictionary with the features for the matchup
     return {
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
-        'team1_goalsFor': team1_goalsFor,
-        'team1_goalsAgainst': team1_goalsAgainst,
-        'team1_shotsFor': team1_shotsFor,
-        'team1_shotsAgainst': team1_shotsAgainst,
+        'team1_rolling_saves': team1_rolling_saves,
+        'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
+        'team1_rolling_saves_10': team1_rolling_saves_10,
+        'team1_rolling_opponent_saves_10': team1_rolling_opponent_saves_10,
+        'team1_rolling_saves_15': team1_rolling_saves_15,
+        'team1_rolling_opponent_saves_15': team1_rolling_opponent_saves_15,
         'team2_backToBack': team2_backToBack,
         'team2_isHome': team2_isHome,
-        'team2_goalsFor': team2_goalsFor,
-        'team2_goalsAgainst': team2_goalsAgainst,
-        'team2_shotsFor': team2_shotsFor,
-        'team2_shotsAgainst': team2_shotsAgainst,
+        'team2_rolling_saves': team2_rolling_saves,
+        'team2_rolling_opponent_saves': team2_rolling_opponent_saves,
+        'team2_rolling_saves_10': team2_rolling_saves_10,
+        'team2_rolling_opponent_saves_10': team2_rolling_opponent_saves_10,
+        'team2_rolling_saves_15': team2_rolling_saves_15,
+        'team2_rolling_opponent_saves_15': team2_rolling_opponent_saves_15,
     }
 
 # Function to predict saves for a new matchup
@@ -212,14 +224,9 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
     away_prediction = model_away.predict(away_input_df)
     
     print(f"Predicted saves for {team1} vs {team2}:")
-    
-    # Adjust error statistics with a factor (e.g., 1.5) to widen the error distribution
-    adjusted_home_std = home_error_std * 1.5
-    adjusted_away_std = away_error_std * 1.5
 
-    home_prob = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=adjusted_home_std)
-    away_prob = 1 - norm.cdf(away_threshold, loc=away_prediction + away_error_mean, scale=adjusted_away_std)
-
+    home_prob = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=home_error_std)
+    away_prob = 1 - norm.cdf(away_threshold, loc=away_prediction + away_error_mean, scale=away_error_std)
     
     print(f"Predicted saves for {team1}: {home_prediction[0]:.2f}, Probability of reaching {home_threshold}: {home_prob[0]:.2%}")
     print(f"Predicted saves for {team2}: {away_prediction[0]:.2f}, Probability of reaching {away_threshold}: {away_prob[0]:.2%}")
@@ -232,10 +239,7 @@ while True:
         print("Exiting program.")
         break
 
-    try:
-        team1, home_threshold, team2, away_threshold = user_input.split()
-        home_threshold = float(home_threshold)
-        away_threshold = float(away_threshold)
-        predict_saves(team1, team2, home_threshold, away_threshold)
-    except ValueError:
-        print("Invalid input format. Use: 'BOS 24 ANA 25.5'")
+    team1, home_threshold, team2, away_threshold = user_input.split()
+    home_threshold = float(home_threshold)
+    away_threshold = float(away_threshold)
+    predict_saves(team1, team2, home_threshold, away_threshold)

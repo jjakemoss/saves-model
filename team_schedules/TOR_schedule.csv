@@ -52,3 +52,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020807,True,MIN,33,25,1,3,22,32,False
 2024020833,False,EDM,28,48,4,3,45,24,False
 2024020853,False,CGY,30,26,6,3,23,24,False
+2024020869,False,SEA,30,27,3,1,26,27,False

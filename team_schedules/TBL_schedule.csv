@@ -51,3 +51,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020815,True,LAK,33,28,3,0,28,30,False
 2024020829,True,NYI,31,36,2,3,33,29,False
 2024020847,True,OTT,38,28,4,3,25,34,False
+2024020862,True,OTT,31,28,5,1,27,26,False
