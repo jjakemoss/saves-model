@@ -95,8 +95,8 @@ if model_home == None and model_away == None:
     y_away = pd.Series(y_away)
 
     # Initialize the RandomForest models
-    model_home = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
-    model_away = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    model_home = RandomForestRegressor(n_estimators=1000, max_depth=20, min_samples_split=10, min_samples_leaf=5, random_state=42, n_jobs=-1)
+    model_away = RandomForestRegressor(n_estimators=1000, max_depth=20, min_samples_split=10, min_samples_leaf=5, random_state=42, n_jobs=-1)
 
     # Iterate through each game for testing
     home_mae_list = []
@@ -105,7 +105,7 @@ if model_home == None and model_away == None:
     # Lists to store prediction errors
     home_errors, away_errors = [], []
 
-    for i in range(1, len(X_home)):  # Starting from the second game to have previous games to train on
+    for i in range(len(X_home)-2, len(X_home)):  # Starting from the second game to have previous games to train on
         # Log current game for testing
         logger.info(f"Training on {i}/{len(X_home)} games, predicting game {i+1}")
         
@@ -194,26 +194,58 @@ def get_matchup_data(team1, team2):
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_saves': team1_rolling_saves,
-        'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
         'team1_rolling_saves_10': team1_rolling_saves_10,
-        'team1_rolling_opponent_saves_10': team1_rolling_opponent_saves_10,
         'team1_rolling_saves_15': team1_rolling_saves_15,
+        'team2_backToBack': team2_backToBack,
+        'team2_isHome': team2_isHome,
+        'team2_rolling_opponent_saves': team2_rolling_opponent_saves,
+        'team2_rolling_opponent_saves_10': team2_rolling_opponent_saves_10,
+        'team2_rolling_opponent_saves_15': team2_rolling_opponent_saves_15,
+    }
+
+# Function to get matchup data based on team names and game_id
+def get_matchup_data_away(team1, team2):
+    # Get the relevant data for team1 (home team)
+    team1_data = combined_df[(combined_df['home_team'] == team1)]
+    team1_backToBack = team1_data['home_backToBack'].tail(1).values[0]
+    team1_isHome = team1_data['isHome_x'].tail(1).values[0]
+    team1_rolling_saves = team1_data['home_teamSaves_rolling'].tail(1).values[0]
+    team1_rolling_opponent_saves = team1_data['home_opponentSaves_rolling'].tail(1).values[0]
+    team1_rolling_saves_10 = team1_data['home_teamSaves_rolling_10'].tail(1).values[0]
+    team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
+    team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
+    team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
+
+    # Get the relevant data for team2 (away team)
+    team2_data = combined_df[(combined_df['away_team'] == team2)]
+    team2_backToBack = team2_data['away_backToBack'].tail(1).values[0]
+    team2_isHome = team2_data['isHome_y'].tail(1).values[0]
+    team2_rolling_saves = team2_data['away_teamSaves_rolling'].tail(1).values[0]
+    team2_rolling_opponent_saves = team2_data['away_opponentSaves_rolling'].tail(1).values[0]
+    team2_rolling_saves_10 = team2_data['away_teamSaves_rolling_10'].tail(1).values[0]
+    team2_rolling_opponent_saves_10 = team2_data['away_opponentSaves_rolling_10'].tail(1).values[0]
+    team2_rolling_saves_15 = team2_data['away_teamSaves_rolling_15'].tail(1).values[0]
+    team2_rolling_opponent_saves_15 = team2_data['away_opponentSaves_rolling_15'].tail(1).values[0]
+
+    # Return a dictionary with the features for the matchup
+    return {
+        'team1_backToBack': team1_backToBack,
+        'team1_isHome': team1_isHome,
+        'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
+        'team1_rolling_opponent_saves_10': team1_rolling_opponent_saves_10,
         'team1_rolling_opponent_saves_15': team1_rolling_opponent_saves_15,
         'team2_backToBack': team2_backToBack,
         'team2_isHome': team2_isHome,
         'team2_rolling_saves': team2_rolling_saves,
-        'team2_rolling_opponent_saves': team2_rolling_opponent_saves,
         'team2_rolling_saves_10': team2_rolling_saves_10,
-        'team2_rolling_opponent_saves_10': team2_rolling_opponent_saves_10,
-        'team2_rolling_saves_15': team2_rolling_saves_15,
-        'team2_rolling_opponent_saves_15': team2_rolling_opponent_saves_15,
+        'team2_rolling_saves_15': team2_rolling_saves_15
     }
 
 # Function to predict saves for a new matchup
 def predict_saves(team1, team2, home_threshold, away_threshold):
     # Get the features for the matchup using the get_matchup_data function
     matchup_input_home = get_matchup_data(team1, team2)
-    matchup_input_away = get_matchup_data(team2, team1)
+    matchup_input_away = get_matchup_data_away(team1, team2)
     
     # Convert the input dictionaries to DataFrames with appropriate column names
     home_input_df = pd.DataFrame([list(matchup_input_home.values())], columns=X_home_columns)
