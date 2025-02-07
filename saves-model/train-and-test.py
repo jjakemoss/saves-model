@@ -105,7 +105,7 @@ if model_home == None and model_away == None:
     # Lists to store prediction errors
     home_errors, away_errors = [], []
 
-    for i in range(len(X_home)-2, len(X_home)):  # Starting from the second game to have previous games to train on
+    for i in range(1, len(X_home)):  # Starting from the second game to have previous games to train on
         # Log current game for testing
         logger.info(f"Training on {i}/{len(X_home)} games, predicting game {i+1}")
         
