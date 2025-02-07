@@ -95,8 +95,8 @@ if model_home == None and model_away == None:
     y_away = pd.Series(y_away)
 
     # Initialize the RandomForest models
-    model_home = RandomForestRegressor(n_estimators=1000, max_depth=20, min_samples_split=10, min_samples_leaf=5, random_state=42, n_jobs=-1)
-    model_away = RandomForestRegressor(n_estimators=1000, max_depth=20, min_samples_split=10, min_samples_leaf=5, random_state=42, n_jobs=-1)
+    model_home = RandomForestRegressor(n_estimators=1000, random_state=42, n_jobs=-1)
+    model_away = RandomForestRegressor(n_estimators=1000, random_state=42, n_jobs=-1)
 
     # Iterate through each game for testing
     home_mae_list = []
