@@ -59,9 +59,34 @@ if model_home == None and model_away == None:
     # Initialize empty lists for features and targets
     X_home, X_away, y_home, y_away = [], [], [], []
 
-    # Initialize MLPRegressor models for both teams
-    model_home = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=1, warm_start=True)
-    model_away = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=1, warm_start=True)
+    # Initialize MLPRegressor models for both teams with tuned parameters
+    model_home = MLPRegressor(
+        hidden_layer_sizes=(200, 100, 50, 25),  # Fewer layers and neurons to reduce model complexity
+        max_iter=5000,                  # A moderate number of iterations
+        warm_start=True,                # Keep training from previous model
+        activation='relu',             # Use relu activation function
+        solver='adam',                 # Using the default optimizer 'adam'
+        learning_rate='constant',      # Keep learning rate constant for stability
+        learning_rate_init=0.001,      # Moderate learning rate
+        alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
+    )
+
+    model_away = MLPRegressor(
+        hidden_layer_sizes=(200, 100, 50, 25),  # Fewer layers and neurons to reduce model complexity
+        max_iter=5000,                  # A moderate number of iterations
+        warm_start=True,                # Keep training from previous model
+        activation='relu',             # Use relu activation function
+        solver='adam',                 # Using the default optimizer 'adam'
+        learning_rate='constant',      # Keep learning rate constant for stability
+        learning_rate_init=0.001,
+        alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
+    )
+
+# Train and evaluate the models as usual
+
+
+# Train and evaluate the models as usual
+
     home_scaler = StandardScaler()
     away_scaler = StandardScaler()
 
@@ -78,21 +103,17 @@ if model_home == None and model_away == None:
     # Iterate through the rows of the sorted dataframe for training
     for i, row in combined_df_sorted.iterrows():
         X_home_game = np.array(row[X_home_columns]).reshape(1, -1)
-        X_away_game = np.array(row[X_away_columns]).reshape(1, -1)
-        
-        # Scale using DataFrame instead of ndarray to retain column names
-        X_home_scaled = home_scaler.transform(pd.DataFrame(X_home_game, columns=X_home_columns))
-        X_away_scaled = away_scaler.transform(pd.DataFrame(X_away_game, columns=X_away_columns))
+        X_away_game = np.array(row[X_away_columns]).reshape(1, -1) 
 
         # Home team predictions and model update
         home_y = row[target_columns[0]]
-        home_pred = model_home.predict(X_home_scaled) if i > 0 else [home_y]  # Use first value as baseline
-        model_home.partial_fit(X_home_scaled, [home_y])
+        home_pred = model_home.predict(X_home_game) if i > 0 else [home_y]  # Use first value as baseline
+        model_home.partial_fit(X_home_game, [home_y])
         
         # Away team predictions and model update
         away_y = row[target_columns[1]]
-        away_pred = model_away.predict(X_away_scaled) if i > 0 else [away_y]
-        model_away.partial_fit(X_away_scaled, [away_y])
+        away_pred = model_away.predict(X_away_game) if i > 0 else [away_y]
+        model_away.partial_fit(X_away_game, [away_y])
 
         # Track errors
         home_errors.append(abs(home_pred[0] - home_y))

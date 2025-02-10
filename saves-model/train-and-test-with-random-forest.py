@@ -2,22 +2,26 @@ import pandas as pd
 import logging
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import norm
+import numpy as np
 import joblib
 import os
 
-model_home_path = "model_home.pkl"
-model_away_path = "model_away.pkl"
-error_stats_path = "error_stats.pkl"
+model_home_path = "model_home_rf.pkl"
+model_away_path = "model_away_rf.pkl"
+error_stats_path = "error_stats_rf.pkl"
 
 model_home = None
 model_away = None
 
-X_home_columns = ['team1_backToBack', 'team1_isHome', 'team1_rolling_saves', 'team1_rolling_saves_10', 'team1_rolling_saves_15', 'team2_rolling_opponent_saves', 'team2_rolling_opponent_saves_10', 'team2_rolling_opponent_saves_15',
-                    'team2_backToBack', 'team2_isHome']
+X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
+                    'away_backToBack', 'isHome_y']
 
-X_away_columns = ['team2_backToBack', 'team2_isHome', 'team1_rolling_opponent_saves', 'team1_rolling_opponent_saves_10', 'team1_rolling_opponent_saves_15', 'team2_rolling_saves', 'team2_rolling_saves_10', 'team2_rolling_saves_15',
-                    'team1_backToBack', 'team1_isHome']
+X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
+                    'home_backToBack', 'isHome_x']
+
+target_columns = ["home_teamSaves", "away_teamSaves"]
 
 if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.path.exists(error_stats_path):
     use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
@@ -52,116 +56,68 @@ if model_home == None and model_away == None:
     # Sort the data by 'gameID' to ensure chronological order
     combined_df_sorted = combined_df.sort_values(by='gameID')
 
-    # Initialize empty lists for features and targets
-    X_home, X_away, y_home, y_away = [], [], [], []
+    # Initialize RandomForestRegressor for both home and away models
+    model_home = RandomForestRegressor(n_estimators=100, random_state=42)
+    model_away = RandomForestRegressor(n_estimators=100, random_state=42)
+
+    home_scaler = MinMaxScaler()
+    away_scaler = MinMaxScaler()
+
+    # Fit scalers on the full dataset
+    home_scaler.fit(combined_df_sorted[X_home_columns])
+    away_scaler.fit(combined_df_sorted[X_away_columns])
+
+    # Initialize lists to track errors
+    home_errors = []
+    away_errors = []
+
+    total_games = len(combined_df_sorted)
 
     # Iterate through the rows of the sorted dataframe for training
     for i, row in combined_df_sorted.iterrows():
-        # Home team features
-        team1_backToBack = row['home_backToBack']
-        team1_isHome = row['isHome_x']
-        team1_rolling_saves = row['home_teamSaves_rolling']
-        team1_rolling_opponent_saves = row['home_opponentSaves_rolling']
-        team1_rolling_saves_10 = row['home_teamSaves_rolling_10']
-        team1_rolling_opponent_saves_10 = row['home_opponentSaves_rolling_10']
-        team1_rolling_saves_15 = row['home_teamSaves_rolling_15']
-        team1_rolling_opponent_saves_15 = row['home_opponentSaves_rolling_15']
-        
-        # Away team features
-        team2_backToBack = row['away_backToBack']
-        team2_isHome = row['isHome_y']
-        team2_rolling_saves = row['away_teamSaves_rolling']
-        team2_rolling_opponent_saves = row['away_opponentSaves_rolling']
-        team2_rolling_saves_10 = row['away_teamSaves_rolling_10']
-        team2_rolling_opponent_saves_10 = row['away_opponentSaves_rolling_10']
-        team2_rolling_saves_15 = row['away_teamSaves_rolling_15']
-        team2_rolling_opponent_saves_15 = row['away_opponentSaves_rolling_15']
-        
-        # Add features for the home team (team1)
-        X_home.append([team1_backToBack, team1_isHome, team1_rolling_saves, team1_rolling_saves_10, team1_rolling_saves_15, team2_rolling_opponent_saves, team2_rolling_opponent_saves_10, team2_rolling_opponent_saves_15,
-                    team2_backToBack, team2_isHome])
-        # Update targets to use the non-rolling saves columns if you removed the rolling fields
-        y_home.append(row['home_teamSaves'])  # Use home_teamSaves (non-rolling)
-        
-        # Add features for the away team (team2)
-        X_away.append([team2_backToBack, team2_isHome, team1_rolling_opponent_saves, team1_rolling_opponent_saves_10, team1_rolling_opponent_saves_15, team2_rolling_saves, team2_rolling_saves_10, team2_rolling_saves_15,
-                    team1_backToBack, team1_isHome])
-        y_away.append(row['away_teamSaves'])  # Target is away team's saves
+        X_home_game = np.array(row[X_home_columns]).reshape(1, -1)
+        X_away_game = np.array(row[X_away_columns]).reshape(1, -1)
 
-    # Convert lists to DataFrames
-    X_home = pd.DataFrame(X_home, columns=X_home_columns)
-    X_away = pd.DataFrame(X_away, columns=X_away_columns)
-    y_home = pd.Series(y_home)
-    y_away = pd.Series(y_away)
+        # Home team predictions and model update
+        home_y = row[target_columns[0]]
+        home_pred = model_home.predict(X_home_game) if i > 0 else [home_y]  # Use first value as baseline
+        model_home.fit(X_home_game, [home_y])
 
-    # Initialize the RandomForest models
-    model_home = RandomForestRegressor(n_estimators=1000, random_state=42, n_jobs=-1)
-    model_away = RandomForestRegressor(n_estimators=1000, random_state=42, n_jobs=-1)
+        # Away team predictions and model update
+        away_y = row[target_columns[1]]
+        away_pred = model_away.predict(X_away_game) if i > 0 else [away_y]
+        model_away.fit(X_away_game, [away_y])
 
-    # Iterate through each game for testing
-    home_mae_list = []
-    away_mae_list = []
+        # Track errors
+        home_errors.append(abs(home_pred[0] - home_y))
+        away_errors.append(abs(away_pred[0] - away_y))
 
-    # Lists to store prediction errors
-    home_errors, away_errors = [], []
+        # Log progress every 100 games
+        if i % 100 == 0 or i == total_games - 1:
+            logging.info(f"Processed {i+1}/{total_games} games.")
 
-    for i in range(1, len(X_home)):  # Starting from the second game to have previous games to train on
-        # Log current game for testing
-        logger.info(f"Training on {i}/{len(X_home)} games, predicting game {i+1}")
-        
-        # Use all games before the current game for training
-        X_home_train = X_home.iloc[:i]
-        y_home_train = y_home.iloc[:i]
-        X_away_train = X_away.iloc[:i]
-        y_away_train = y_away.iloc[:i]
-
-        # Train the models
-        model_home.fit(X_home_train, y_home_train)
-        model_away.fit(X_away_train, y_away_train)
-
-        # Test on the current game (i)
-        X_home_test = X_home.iloc[i:i+1]
-        y_home_test = y_home.iloc[i:i+1]
-        X_away_test = X_away.iloc[i:i+1]
-        y_away_test = y_away.iloc[i:i+1]
-
-        # Make predictions
-        y_home_pred = model_home.predict(X_home_test)
-        y_away_pred = model_away.predict(X_away_test)
-
-        # Calculate and store MAE
-        home_mae_list.append(mean_absolute_error(y_home_test, y_home_pred))
-        away_mae_list.append(mean_absolute_error(y_away_test, y_away_pred))
-
-        home_errors.append(y_home.iloc[i] - y_home_pred[0])
-        away_errors.append(y_away.iloc[i] - y_away_pred[0])
-
-    # Calculate the average MAE across all games
-    avg_home_mae = sum(home_mae_list) / len(home_mae_list)
-    avg_away_mae = sum(away_mae_list) / len(away_mae_list)
-
-    # Fit normal distributions to the errors
-    home_error_mean, home_error_std = norm.fit(home_errors)
-    away_error_mean, away_error_std = norm.fit(away_errors)
-
-    print("Average Home team saves prediction MAE:", avg_home_mae)
-    print("Average Away team saves prediction MAE:", avg_away_mae)
-
-    print("Model training complete.")
+    # Calculate and print overall MAE
+    home_mae = np.mean(home_errors)
+    away_mae = np.mean(away_errors)
+    print(f"Overall Home MAE: {home_mae:.2f}")
+    print(f"Overall Away MAE: {away_mae:.2f}")
 
     # Save the models
     joblib.dump(model_home, model_home_path)
     joblib.dump(model_away, model_away_path)
     print("Models saved for future use.")
 
+    home_error_mean, home_error_std = norm.fit(home_errors)
+    away_error_mean, away_error_std = norm.fit(away_errors)
+
     # Save error statistics
     error_stats = {
-        "home_error_mean": home_error_mean,
+        "home_error_mean": home_mae,
         "home_error_std": home_error_std,
-        "away_error_mean": away_error_mean,
+        "away_error_mean": away_mae,
         "away_error_std": away_error_std
     }
-    joblib.dump(error_stats, "error_stats.pkl")
+    joblib.dump(error_stats, "error_stats_rf.pkl")
 
     print("Models and error statistics saved for future use.")
 
@@ -256,7 +212,7 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
     away_prediction = model_away.predict(away_input_df)
     
     print(f"Predicted saves for {team1} vs {team2}:")
-
+    
     home_prob = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=home_error_std)
     away_prob = 1 - norm.cdf(away_threshold, loc=away_prediction + away_error_mean, scale=away_error_std)
     
