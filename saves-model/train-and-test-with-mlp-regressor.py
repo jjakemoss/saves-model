@@ -57,15 +57,11 @@ if model_home == None and model_away == None:
     # Sort the data by 'gameID' to ensure chronological order
     combined_df_sorted = combined_df.sort_values(by='gameID')
 
-    # combined_df_sorted['home_teamSaves_rolling_3'] *= 2
-    # combined_df_sorted['away_teamSaves_rolling_3'] *= 2
-    # combined_df_sorted['away_opponentSaves_rolling_3'] *= 2
-    # combined_df_sorted['home_opponentSaves_rolling_3'] *= 2
+    combined_df_sorted['home_teamSaves_rolling_3'] *= 2
+    combined_df_sorted['away_teamSaves_rolling_3'] *= 2
+    combined_df_sorted['away_opponentSaves_rolling_3'] *= 2
+    combined_df_sorted['home_opponentSaves_rolling_3'] *= 2
 
-    # combined_df_sorted['home_teamSaves_rolling_15'] *= 0.5
-    # combined_df_sorted['away_teamSaves_rolling_15'] *= 0.5
-    # combined_df_sorted['away_opponentSaves_rolling_15'] *= 0.5
-    # combined_df_sorted['home_opponentSaves_rolling_15'] *= 0.5
 
     # Initialize MLPRegressor models for both teams with tuned parameters
     model_home = MLPRegressor(

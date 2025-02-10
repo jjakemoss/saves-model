@@ -2,6 +2,7 @@ import pandas as pd
 import logging
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import LabelEncoder
 from scipy.stats import norm
 import numpy as np
 import joblib
@@ -14,10 +15,10 @@ error_stats_path = "error_stats.pkl"
 model_home = None
 model_away = None
 
-X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
+X_home_columns = ['home_team', 'away_team', 'home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
                     'away_backToBack', 'isHome_y']
 
-X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
+X_away_columns = ['away_team', 'home_team', 'away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
                     'home_backToBack', 'isHome_x']
 
 target_columns = ["home_teamSaves", "away_teamSaves"]
@@ -39,6 +40,12 @@ if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.pa
 
 # Load the combined dataset
 combined_df = pd.read_csv("combined_simplified.csv")
+
+team_encoder = LabelEncoder()
+
+# Fit and transform the 'home_team' and 'away_team' columns
+combined_df['home_team'] = team_encoder.fit_transform(combined_df['home_team'])
+combined_df['away_team'] = team_encoder.transform(combined_df['away_team'])
 
 if model_home is None and model_away is None:
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -70,11 +77,20 @@ if model_home is None and model_away is None:
 
     total_games = len(combined_df_sorted)
 
-    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=1):
+    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=600):
         current_gameID = row.gameID  # Get the current gameID
 
         # Use only past games for training
-        past_games = combined_df_sorted[combined_df_sorted["gameID"] < current_gameID]
+        # Filter past games for training (exclude the current game)
+        past_games = combined_df_sorted[
+            (combined_df_sorted["gameID"] < current_gameID) & 
+            (
+                (combined_df_sorted["home_team"] == row.home_team) | 
+                (combined_df_sorted["home_team"] == row.away_team) | 
+                (combined_df_sorted["away_team"] == row.home_team) | 
+                (combined_df_sorted["away_team"] == row.away_team)
+            )
+        ]
 
         if past_games.empty:
             continue  # Skip training for the first game since no past data exists
@@ -113,6 +129,8 @@ if model_home is None and model_away is None:
         # Log progress every 100 games
         if i % 100 == 0 or i == total_games:
             logging.info(f"Processed {i}/{total_games} games.")
+        if i >= total_games:
+            break
 
     # Calculate and print overall MAE
     home_mae = np.mean(home_errors)
@@ -159,6 +177,8 @@ def get_matchup_data(team1, team2):
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
     team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
+    team1_encoded = team_encoder.transform([team1])[0]
+    team2_encoded = team_encoder.transform([team2])[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]
@@ -175,6 +195,8 @@ def get_matchup_data(team1, team2):
 
     # Return a dictionary with the features for the matchup
     return {
+        'home_team': team1_encoded,
+        'away_team': team2_encoded,
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_saves': team1_rolling_saves,
@@ -203,6 +225,8 @@ def get_matchup_data_away(team1, team2):
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
     team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
+    team1_encoded = team_encoder.transform([team1])[0]
+    team2_encoded = team_encoder.transform([team2])[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]
@@ -219,6 +243,8 @@ def get_matchup_data_away(team1, team2):
 
     # Return a dictionary with the features for the matchup
     return {
+        'home_team': team1_encoded,
+        'away_team': team2_encoded,
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
