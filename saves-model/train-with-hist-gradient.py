@@ -1,7 +1,9 @@
 import pandas as pd
 import logging
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import HistGradientBoostingRegressor
 from scipy.stats import norm
 import numpy as np
 import joblib
@@ -25,7 +27,8 @@ target_columns = ["home_teamSaves", "away_teamSaves"]
 if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.path.exists(error_stats_path):
     use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
 
-    if use_saved_model in ["yes", "y"]:
+    if use_saved_model == "yes" or use_saved_model == "y":
+        print("Loading saved models...")
         print("Loading saved models and error statistics...")
         model_home = joblib.load(model_home_path)
         model_away = joblib.load(model_away_path)
@@ -37,113 +40,67 @@ if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.pa
         away_error_mean = error_stats["away_error_mean"]
         away_error_std = error_stats["away_error_std"]
 
-# Load the combined dataset
+# Load the combined dataset with rolling averages
 combined_df = pd.read_csv("combined_simplified.csv")
 
-if model_home is None and model_away is None:
+if model_home == None and model_away == None:
+    # Set up logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
     logger = logging.getLogger()
+
+    model_home = HistGradientBoostingRegressor(warm_start=True, max_iter=1000, learning_rate=0.01,)
+    model_away = HistGradientBoostingRegressor(warm_start=True, max_iter=1000, learning_rate=0.05,)
 
     # Sort the data by 'gameID' to ensure chronological order
     combined_df_sorted = combined_df.sort_values(by='gameID')
 
-    # Initialize RandomForest models
-    model_home = RandomForestRegressor(
-        n_estimators=1000,    # Number of trees
-        max_depth=10,        # Limit tree depth to prevent overfitting
-        random_state=42,
-        n_jobs=-1            # Use all CPU cores
-    )
+    # Iterate over each game sequentially for training and testing
+    mae_home_list = []
+    mae_away_list = []
 
-    model_away = RandomForestRegressor(
-        n_estimators=1000,
-        max_depth=10,
-        random_state=42,
-        n_jobs=-1
-    )
+    X_home = combined_df_sorted[X_home_columns]
+    X_away = combined_df_sorted[X_away_columns]
+    y_home = combined_df_sorted['home_teamSaves']
+    y_away = combined_df_sorted['away_teamSaves']
 
-    home_errors = []
-    away_errors = []
-
-    home_errors_end = []
-    away_errors_end = []
-
-    total_games = len(combined_df_sorted)
-
-    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=1):
-        current_gameID = row.gameID  # Get the current gameID
-
-        # Use only past games for training
-        past_games = combined_df_sorted[combined_df_sorted["gameID"] < current_gameID]
-
-        if past_games.empty:
-            continue  # Skip training for the first game since no past data exists
-
-        # Prepare training data
-        X_train_home = past_games[X_home_columns]
-        y_train_home = past_games[target_columns[0]]
-
-        X_train_away = past_games[X_away_columns]
-        y_train_away = past_games[target_columns[1]]
-
-        # Train models on past games
-        model_home.fit(X_train_home, y_train_home)
-        model_away.fit(X_train_away, y_train_away)
-
-        # Prepare current game features for prediction
-        X_home_game = pd.DataFrame([getattr(row, col) for col in X_home_columns], index=X_home_columns).T
-        X_away_game = pd.DataFrame([getattr(row, col) for col in X_away_columns], index=X_away_columns).T
-
+    for i in range(len(combined_df_sorted)):
+        if i == 0:
+            continue  # Skip first game since no prior data is available
+        
+        # Use all prior games for training
+        X_home_train = X_home.iloc[:i]
+        X_away_train = X_away.iloc[:i]
+        y_home_train = y_home.iloc[:i]
+        y_away_train = y_away.iloc[:i]
+        
+        # Use current game for testing
+        X_home_test = X_home.iloc[i:i+1]
+        X_away_test = X_away.iloc[i:i+1]
+        y_home_test = y_home.iloc[i:i+1]
+        y_away_test = y_away.iloc[i:i+1]
+        
+        # Train models
+        model_home.fit(X_home_train, y_home_train)
+        model_away.fit(X_away_train, y_away_train)
+        
         # Make predictions
-        home_pred = model_home.predict(X_home_game)[0]
-        away_pred = model_away.predict(X_away_game)[0]
+        y_home_pred = model_home.predict(X_home_test)
+        y_away_pred = model_away.predict(X_away_test)
+        
+        # Evaluate performance
+        mae_home = mean_absolute_error(y_home_test, y_home_pred)
+        mae_away = mean_absolute_error(y_away_test, y_away_pred)
+        mae_home_list.append(mae_home)
+        mae_away_list.append(mae_away)
 
-        # Get actual values
-        home_y = getattr(row, target_columns[0])
-        away_y = getattr(row, target_columns[1])
+    # Save trained models
+    joblib.dump(model_home, 'histgb_home_model.pkl')
+    joblib.dump(model_away, 'histgb_away_model.pkl')
 
-        # Track errors
-        home_errors.append(abs(home_pred - home_y))
-        away_errors.append(abs(away_pred - away_y))
+    # Print average MAE
+    print(f'Average MAE Home: {np.mean(mae_home_list):.2f}, Average MAE Away: {np.mean(mae_away_list):.2f}')
 
-        if i > 600:
-            home_errors_end.append(abs(home_pred - home_y))
-            away_errors_end.append(abs(away_pred - away_y))
-
-        # Log progress every 100 games
-        if i % 100 == 0 or i == total_games:
-            logging.info(f"Processed {i}/{total_games} games.")
-
-    # Calculate and print overall MAE
-    home_mae = np.mean(home_errors)
-    away_mae = np.mean(away_errors)
-    print(f"Overall Home MAE: {home_mae:.2f}")
-    print(f"Overall Away MAE: {away_mae:.2f}")
-
-    home_mae2 = np.mean(home_errors_end)
-    away_mae2 = np.mean(away_errors_end)
-    print(f"Overall Home MAE2: {home_mae2:.2f}")
-    print(f"Overall Away MAE2: {away_mae2:.2f}")
-
-    # Save the models
-    joblib.dump(model_home, model_home_path)
-    joblib.dump(model_away, model_away_path)
-    print("Models saved for future use.")
-
-    home_error_mean, home_error_std = norm.fit(home_errors)
-    away_error_mean, away_error_std = norm.fit(away_errors)
-
-    # Save error statistics
-    error_stats = {
-        "home_error_mean": home_mae,
-        "home_error_std": home_error_std,
-        "away_error_mean": away_mae,
-        "away_error_std": away_error_std
-    }
-    joblib.dump(error_stats, error_stats_path)
-
-    print("Models and error statistics saved for future use.")
-
+    print("Training complete and model updated with new data.")
 
 # Function to get matchup data based on team names and game_id
 def get_matchup_data(team1, team2):

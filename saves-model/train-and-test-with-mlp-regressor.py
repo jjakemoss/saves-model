@@ -3,6 +3,7 @@ import logging
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
 from scipy.stats import norm
 import numpy as np
 import joblib
@@ -15,10 +16,10 @@ error_stats_path = "error_stats.pkl"
 model_home = None
 model_away = None
 
-X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
+X_home_columns = ['home_team', 'away_team', 'home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
                     'away_backToBack', 'isHome_y']
 
-X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
+X_away_columns = ['away_team', 'home_team', 'away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
                     'home_backToBack', 'isHome_x']
 
 target_columns = ["home_teamSaves", "away_teamSaves"]
@@ -42,43 +43,50 @@ if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.pa
 # Load the combined dataset with rolling averages
 combined_df = pd.read_csv("combined_simplified.csv")
 
+team_encoder = LabelEncoder()
+
+# Fit and transform the 'home_team' and 'away_team' columns
+combined_df['home_team'] = team_encoder.fit_transform(combined_df['home_team'])
+combined_df['away_team'] = team_encoder.transform(combined_df['away_team'])
+
 if model_home == None and model_away == None:
     # Set up logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
     logger = logging.getLogger()
 
-    # Prepare features and target variables for both teams
-    X_home = []
-    X_away = []
-    y_home = []
-    y_away = []
-
     # Sort the data by 'gameID' to ensure chronological order
     combined_df_sorted = combined_df.sort_values(by='gameID')
 
-    # Initialize empty lists for features and targets
-    X_home, X_away, y_home, y_away = [], [], [], []
+    # combined_df_sorted['home_teamSaves_rolling_3'] *= 2
+    # combined_df_sorted['away_teamSaves_rolling_3'] *= 2
+    # combined_df_sorted['away_opponentSaves_rolling_3'] *= 2
+    # combined_df_sorted['home_opponentSaves_rolling_3'] *= 2
+
+    # combined_df_sorted['home_teamSaves_rolling_15'] *= 0.5
+    # combined_df_sorted['away_teamSaves_rolling_15'] *= 0.5
+    # combined_df_sorted['away_opponentSaves_rolling_15'] *= 0.5
+    # combined_df_sorted['home_opponentSaves_rolling_15'] *= 0.5
 
     # Initialize MLPRegressor models for both teams with tuned parameters
     model_home = MLPRegressor(
-        hidden_layer_sizes=(100, 50, 25),  # Fewer layers and neurons to reduce model complexity
-        max_iter=5000,                  # A moderate number of iterations
+        hidden_layer_sizes=(50, 25, 10),  # Fewer layers and neurons to reduce model complexity
+        max_iter=20000,                  # A moderate number of iterations
         warm_start=True,                # Keep training from previous model
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
-        learning_rate='constant',      # Keep learning rate constant for stability
-        learning_rate_init=0.001,      # Moderate learning rate
+        learning_rate='adaptive',      # Keep learning rate constant for stability
+        learning_rate_init=0.0005 ,      # Moderate learning rate
         alpha=0.001,                    # Slightly increased regularization to prevent overfitting
     )
 
     model_away = MLPRegressor(
-        hidden_layer_sizes=(100, 50, 25),  # Fewer layers and neurons to reduce model complexity
-        max_iter=5000,                  # A moderate number of iterations
+        hidden_layer_sizes=(50, 25, 10),  # Fewer layers and neurons to reduce model complexity
+        max_iter=20000,                  # A moderate number of iterations
         warm_start=True,                # Keep training from previous model
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
-        learning_rate='constant',      # Keep learning rate constant for stability
-        learning_rate_init=0.001,
+        learning_rate='adaptive',      # Keep learning rate constant for stability
+        learning_rate_init=0.0005 ,
         alpha=0.001,                    # Slightly increased regularization to prevent overfitting
     )
 
@@ -96,7 +104,15 @@ if model_home == None and model_away == None:
         current_gameID = row.gameID  # Get the current gameID
 
         # Filter past games for training (exclude the current game)
-        past_games = combined_df_sorted[combined_df_sorted["gameID"] < current_gameID]
+        past_games = combined_df_sorted[
+            (combined_df_sorted["gameID"] < current_gameID) & 
+            (
+                (combined_df_sorted["home_team"] == row.home_team) | 
+                (combined_df_sorted["home_team"] == row.away_team) | 
+                (combined_df_sorted["away_team"] == row.home_team) | 
+                (combined_df_sorted["away_team"] == row.away_team)
+            )
+        ]
 
         if past_games.empty:
             continue  # Skip training for the first game since no past data exists
@@ -182,6 +198,8 @@ def get_matchup_data(team1, team2):
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
     team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
+    team1_encoded = team_encoder.transform([team1])[0]
+    team2_encoded = team_encoder.transform([team2])[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]
@@ -198,6 +216,8 @@ def get_matchup_data(team1, team2):
 
     # Return a dictionary with the features for the matchup
     return {
+        'home_team': team1_encoded,
+        'away_team': team2_encoded,
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_saves': team1_rolling_saves,
@@ -226,6 +246,8 @@ def get_matchup_data_away(team1, team2):
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
     team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
+    team1_encoded = team_encoder.transform([team1])[0]
+    team2_encoded = team_encoder.transform([team2])[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]
@@ -242,6 +264,8 @@ def get_matchup_data_away(team1, team2):
 
     # Return a dictionary with the features for the matchup
     return {
+        'home_team': team1_encoded,
+        'away_team': team2_encoded,
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
