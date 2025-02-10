@@ -31,7 +31,7 @@ combined_df = pd.concat(df_list, ignore_index=True)
 combined_df['teamSaves_rolling'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=5, adjust=False)  # Exponential weighting
+    .rolling(window=5, min_periods=5)  # Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -41,7 +41,26 @@ combined_df['teamSaves_rolling'] = (
 combined_df['opponentSaves_rolling'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=5, adjust=False)  # Exponential weighting
+    .rolling(window=5, min_periods=5)  # Exponential weighting
+    .mean()
+    .shift(1)  # Shift by 1 to exclude the current game's value
+    .reset_index(0, drop=True)
+)
+
+combined_df['teamSaves_rolling_3'] = (
+    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    .groupby('team')['teamSaves']
+    .rolling(window=3, min_periods=3)  # Exponential weighting
+    .mean()
+    .shift(1)  # Shift to avoid data leakage
+    .reset_index(0, drop=True)
+)
+
+# Rolling averages for opponent saves (for each team)
+combined_df['opponentSaves_rolling_3'] = (
+    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    .groupby('team')['opponentSaves']
+    .rolling(window=3, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -51,7 +70,7 @@ combined_df['opponentSaves_rolling'] = (
 combined_df['teamSaves_rolling_10'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=10, adjust=False)  # Exponential weighting
+    .rolling(window=10, min_periods=10)# Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -61,7 +80,7 @@ combined_df['teamSaves_rolling_10'] = (
 combined_df['opponentSaves_rolling_10'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=10, adjust=False)  # Exponential weighting
+    .rolling(window=10, min_periods=10)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -71,7 +90,7 @@ combined_df['opponentSaves_rolling_10'] = (
 combined_df['teamSaves_rolling_15'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=15, adjust=False)  # Exponential weighting
+    .rolling(window=15, min_periods=15)  # Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -81,7 +100,7 @@ combined_df['teamSaves_rolling_15'] = (
 combined_df['opponentSaves_rolling_15'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=15, adjust=False)  # Exponential weighting
+    .rolling(window=15, min_periods=15)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -98,8 +117,8 @@ print("Updated dataset with rolling averages has been saved to 'combined_with_ro
 combined_df = pd.read_csv("combined_with_rolling_averages.csv")
 
 # Filter out the necessary columns to preserve the team-specific features
-home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
-away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
+home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
+away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
 
 # Split the data into home and away teams
 home_games = combined_df[combined_df['isHome'] == True][home_team_columns]
@@ -109,6 +128,8 @@ away_games = combined_df[combined_df['isHome'] == False][away_team_columns]
 home_games = home_games.rename(columns={
     'teamSaves_rolling': 'home_teamSaves_rolling',
     'opponentSaves_rolling': 'home_opponentSaves_rolling',
+    'teamSaves_rolling_3': 'home_teamSaves_rolling_3',
+    'opponentSaves_rolling_3': 'home_opponentSaves_rolling_3',
     'teamSaves_rolling_10': 'home_teamSaves_rolling_10',
     'opponentSaves_rolling_10': 'home_opponentSaves_rolling_10',
     'teamSaves_rolling_15': 'home_teamSaves_rolling_15',
@@ -123,6 +144,8 @@ home_games = home_games.rename(columns={
 away_games = away_games.rename(columns={
     'teamSaves_rolling': 'away_teamSaves_rolling',
     'opponentSaves_rolling': 'away_opponentSaves_rolling',
+    'teamSaves_rolling_3': 'away_teamSaves_rolling_3',
+    'opponentSaves_rolling_3': 'away_opponentSaves_rolling_3',
     'teamSaves_rolling_10': 'away_teamSaves_rolling_10',
     'opponentSaves_rolling_10': 'away_opponentSaves_rolling_10',
     'teamSaves_rolling_15': 'away_teamSaves_rolling_15',

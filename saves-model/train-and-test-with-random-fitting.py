@@ -15,10 +15,10 @@ error_stats_path = "error_stats.pkl"
 model_home = None
 model_away = None
 
-X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
+X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
                     'away_backToBack', 'isHome_y']
 
-X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
+X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
                     'home_backToBack', 'isHome_x']
 
 target_columns = ["home_teamSaves", "away_teamSaves"]
@@ -86,6 +86,9 @@ if model_home == None and model_away == None:
     home_errors = []
     away_errors = []
 
+    home_errors_end = []
+    away_errors_end = []
+
     total_games = len(combined_df_sorted)
 
     # Iterate through the rows of the sorted dataframe for training
@@ -111,11 +114,21 @@ if model_home == None and model_away == None:
         if i % 100 == 0 or i == total_games - 1:
             logging.info(f"Processed {i+1}/{total_games} games.")
 
+        if i > 500:
+            # Track errors
+            home_errors_end.append(abs(home_pred[0] - home_y))
+            away_errors_end.append(abs(away_pred[0] - away_y))
+
     # Calculate and print overall MAE
     home_mae = np.mean(home_errors)
     away_mae = np.mean(away_errors)
     print(f"Overall Home MAE: {home_mae:.2f}")
     print(f"Overall Away MAE: {away_mae:.2f}")
+
+    home_mae2 = np.mean(home_errors_end)
+    away_mae2 = np.mean(away_errors_end)
+    print(f"Overall Home MAE2: {home_mae2:.2f}")
+    print(f"Overall Away MAE2: {away_mae2:.2f}")
 
     # Save the models
     joblib.dump(model_home, model_home_path)
@@ -144,6 +157,8 @@ def get_matchup_data(team1, team2):
     team1_isHome = team1_data['isHome_x'].tail(1).values[0]
     team1_rolling_saves = team1_data['home_teamSaves_rolling'].tail(1).values[0]
     team1_rolling_opponent_saves = team1_data['home_opponentSaves_rolling'].tail(1).values[0]
+    team1_rolling_saves_3 = team1_data['home_teamSaves_rolling_3'].tail(1).values[0]
+    team1_rolling_opponent_saves_3 = team1_data['home_opponentSaves_rolling_3'].tail(1).values[0]
     team1_rolling_saves_10 = team1_data['home_teamSaves_rolling_10'].tail(1).values[0]
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
@@ -154,6 +169,8 @@ def get_matchup_data(team1, team2):
     team2_backToBack = team2_data['away_backToBack'].tail(1).values[0]
     team2_isHome = team2_data['isHome_y'].tail(1).values[0]
     team2_rolling_saves = team2_data['away_teamSaves_rolling'].tail(1).values[0]
+    team2_rolling_saves_3 = team2_data['away_teamSaves_rolling_3'].tail(1).values[0]
+    team2_rolling_opponent_saves_3 = team2_data['away_opponentSaves_rolling_3'].tail(1).values[0]
     team2_rolling_opponent_saves = team2_data['away_opponentSaves_rolling'].tail(1).values[0]
     team2_rolling_saves_10 = team2_data['away_teamSaves_rolling_10'].tail(1).values[0]
     team2_rolling_opponent_saves_10 = team2_data['away_opponentSaves_rolling_10'].tail(1).values[0]
@@ -165,11 +182,13 @@ def get_matchup_data(team1, team2):
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_saves': team1_rolling_saves,
+        'team1_rolling_saves_3': team1_rolling_saves_3,
         'team1_rolling_saves_10': team1_rolling_saves_10,
         'team1_rolling_saves_15': team1_rolling_saves_15,
         'team2_backToBack': team2_backToBack,
         'team2_isHome': team2_isHome,
         'team2_rolling_opponent_saves': team2_rolling_opponent_saves,
+        'team2_rolling_opponent_saves_3': team2_rolling_opponent_saves_3,
         'team2_rolling_opponent_saves_10': team2_rolling_opponent_saves_10,
         'team2_rolling_opponent_saves_15': team2_rolling_opponent_saves_15,
     }
@@ -182,6 +201,8 @@ def get_matchup_data_away(team1, team2):
     team1_isHome = team1_data['isHome_x'].tail(1).values[0]
     team1_rolling_saves = team1_data['home_teamSaves_rolling'].tail(1).values[0]
     team1_rolling_opponent_saves = team1_data['home_opponentSaves_rolling'].tail(1).values[0]
+    team1_rolling_saves_3 = team1_data['home_teamSaves_rolling_3'].tail(1).values[0]
+    team1_rolling_opponent_saves_3 = team1_data['home_opponentSaves_rolling_3'].tail(1).values[0]
     team1_rolling_saves_10 = team1_data['home_teamSaves_rolling_10'].tail(1).values[0]
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
@@ -193,6 +214,8 @@ def get_matchup_data_away(team1, team2):
     team2_isHome = team2_data['isHome_y'].tail(1).values[0]
     team2_rolling_saves = team2_data['away_teamSaves_rolling'].tail(1).values[0]
     team2_rolling_opponent_saves = team2_data['away_opponentSaves_rolling'].tail(1).values[0]
+    team2_rolling_saves_3 = team2_data['away_teamSaves_rolling_3'].tail(1).values[0]
+    team2_rolling_opponent_saves_3 = team2_data['away_opponentSaves_rolling_3'].tail(1).values[0]
     team2_rolling_saves_10 = team2_data['away_teamSaves_rolling_10'].tail(1).values[0]
     team2_rolling_opponent_saves_10 = team2_data['away_opponentSaves_rolling_10'].tail(1).values[0]
     team2_rolling_saves_15 = team2_data['away_teamSaves_rolling_15'].tail(1).values[0]
@@ -203,11 +226,13 @@ def get_matchup_data_away(team1, team2):
         'team1_backToBack': team1_backToBack,
         'team1_isHome': team1_isHome,
         'team1_rolling_opponent_saves': team1_rolling_opponent_saves,
+        'team1_rolling_opponent_saves_3': team1_rolling_opponent_saves_3,
         'team1_rolling_opponent_saves_10': team1_rolling_opponent_saves_10,
         'team1_rolling_opponent_saves_15': team1_rolling_opponent_saves_15,
         'team2_backToBack': team2_backToBack,
         'team2_isHome': team2_isHome,
         'team2_rolling_saves': team2_rolling_saves,
+        'team2_rolling_saves_3': team2_rolling_saves_3,
         'team2_rolling_saves_10': team2_rolling_saves_10,
         'team2_rolling_saves_15': team2_rolling_saves_15
     }
