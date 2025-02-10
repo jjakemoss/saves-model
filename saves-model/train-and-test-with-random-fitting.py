@@ -1,8 +1,7 @@
 import pandas as pd
 import logging
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
-from sklearn.linear_model import SGDRegressor
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import norm
 import numpy as np
@@ -60,8 +59,9 @@ if model_home == None and model_away == None:
     # Initialize empty lists for features and targets
     X_home, X_away, y_home, y_away = [], [], [], []
 
-    model_home = SGDRegressor(warm_start=True)
-    model_away = SGDRegressor(warm_start=True)
+    # Initialize MLPRegressor models for both teams
+    model_home = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=1, warm_start=True)
+    model_away = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=1, warm_start=True)
     home_scaler = StandardScaler()
     away_scaler = StandardScaler()
 
@@ -94,7 +94,7 @@ if model_home == None and model_away == None:
         away_pred = model_away.predict(X_away_scaled) if i > 0 else [away_y]
         model_away.partial_fit(X_away_scaled, [away_y])
 
-                # Track errors
+        # Track errors
         home_errors.append(abs(home_pred[0] - home_y))
         away_errors.append(abs(away_pred[0] - away_y))
 
