@@ -137,5 +137,7 @@ away_games = away_games.rename(columns={
 # Merge the home and away games on 'gameID' to get one row per game
 merged_df = pd.merge(home_games, away_games, on='gameID', how='inner')
 
+merged_df = merged_df.dropna().reset_index(drop=True)
+
 # The final dataset now contains one row per game, with both home and away team data
 merged_df.to_csv('combined_simplified.csv', index=False)
