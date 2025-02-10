@@ -55,3 +55,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020827,True,NYR,25,25,6,3,22,19,False
 2024020845,True,MIN,35,36,3,0,36,32,False
 2024020859,False,NYR,17,22,2,3,19,15,True
+2024020879,True,VGK,24,38,3,4,34,21,False

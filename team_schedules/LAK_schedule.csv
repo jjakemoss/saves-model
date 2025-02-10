@@ -50,3 +50,5 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020815,False,TBL,28,33,0,3,30,28,True
 2024020832,False,CAR,26,28,4,2,26,22,False
 2024020861,True,MTL,37,21,6,3,18,31,False
+2024020875,True,DAL,37,30,5,4,26,33,False
+2024020888,True,ANA,44,26,1,2,25,43,True

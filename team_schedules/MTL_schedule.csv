@@ -53,3 +53,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020837,False,ANA,23,22,2,3,19,21,False
 2024020858,False,SJS,20,30,4,3,27,16,False
 2024020861,False,LAK,21,37,3,6,31,18,True
+2024020876,True,NJD,34,22,0,4,18,34,False

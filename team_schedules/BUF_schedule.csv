@@ -52,3 +52,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020822,True,NSH,27,31,4,3,28,23,False
 2024020835,True,NJD,34,24,4,3,21,30,False
 2024020846,True,CBJ,21,29,3,2,27,18,False
+2024020885,False,NSH,29,23,4,6,17,25,False

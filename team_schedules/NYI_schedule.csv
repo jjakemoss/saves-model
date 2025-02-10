@@ -52,3 +52,5 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020829,False,TBL,36,31,3,2,29,33,False
 2024020838,False,FLA,34,33,3,6,27,31,True
 2024020850,True,VGK,14,34,2,1,33,12,False
+2024020872,False,WPG,35,27,3,4,23,32,False
+2024020886,False,MIN,34,33,3,6,28,31,True

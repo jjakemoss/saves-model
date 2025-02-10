@@ -53,3 +53,4 @@ gameID,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,teamSaves,opp
 2024020843,False,SEA,35,31,3,2,29,32,True
 2024020853,True,TOR,26,30,3,6,24,23,False
 2024020868,True,COL,29,34,2,4,30,27,False
+2024020887,True,SEA,29,28,2,3,25,27,False
