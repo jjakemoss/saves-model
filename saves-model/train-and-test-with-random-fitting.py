@@ -61,38 +61,26 @@ if model_home == None and model_away == None:
 
     # Initialize MLPRegressor models for both teams with tuned parameters
     model_home = MLPRegressor(
-        hidden_layer_sizes=(200, 100, 50, 25),  # Fewer layers and neurons to reduce model complexity
+        hidden_layer_sizes=(100, 50, 25),  # Fewer layers and neurons to reduce model complexity
         max_iter=5000,                  # A moderate number of iterations
         warm_start=True,                # Keep training from previous model
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
         learning_rate='constant',      # Keep learning rate constant for stability
         learning_rate_init=0.001,      # Moderate learning rate
-        alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
+        alpha=0.001,                    # Slightly increased regularization to prevent overfitting
     )
 
     model_away = MLPRegressor(
-        hidden_layer_sizes=(200, 100, 50, 25),  # Fewer layers and neurons to reduce model complexity
+        hidden_layer_sizes=(100, 50, 25),  # Fewer layers and neurons to reduce model complexity
         max_iter=5000,                  # A moderate number of iterations
         warm_start=True,                # Keep training from previous model
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
         learning_rate='constant',      # Keep learning rate constant for stability
         learning_rate_init=0.001,
-        alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
+        alpha=0.001,                    # Slightly increased regularization to prevent overfitting
     )
-
-# Train and evaluate the models as usual
-
-
-# Train and evaluate the models as usual
-
-    home_scaler = StandardScaler()
-    away_scaler = StandardScaler()
-
-    # Fit scalers on the full dataset
-    home_scaler.fit(combined_df_sorted[X_home_columns])
-    away_scaler.fit(combined_df_sorted[X_away_columns])
 
     # Initialize lists to track errors
     home_errors = []
