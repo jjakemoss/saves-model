@@ -91,33 +91,52 @@ if model_home == None and model_away == None:
 
     total_games = len(combined_df_sorted)
 
-    # Iterate through the rows of the sorted dataframe for training
-    for i, row in combined_df_sorted.iterrows():
-        X_home_game = np.array(row[X_home_columns]).reshape(1, -1)
-        X_away_game = np.array(row[X_away_columns]).reshape(1, -1) 
+   # Iterate through the rows of the sorted dataframe for training
+    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=1):
+        current_gameID = row.gameID  # Get the current gameID
 
-        # Home team predictions and model update
-        home_y = row[target_columns[0]]
-        home_pred = model_home.predict(X_home_game) if i > 0 else [home_y]  # Use first value as baseline
-        model_home.partial_fit(X_home_game, [home_y])
-        
-        # Away team predictions and model update
-        away_y = row[target_columns[1]]
-        away_pred = model_away.predict(X_away_game) if i > 0 else [away_y]
-        model_away.partial_fit(X_away_game, [away_y])
+        # Filter past games for training (exclude the current game)
+        past_games = combined_df_sorted[combined_df_sorted["gameID"] < current_gameID]
+
+        if past_games.empty:
+            continue  # Skip training for the first game since no past data exists
+
+        # Prepare training data (only past games)
+        X_train_home = past_games[X_home_columns]
+        y_train_home = past_games[target_columns[0]]
+
+        X_train_away = past_games[X_away_columns]
+        y_train_away = past_games[target_columns[1]]
+
+        # Train models on all past games before making predictions
+        model_home.fit(X_train_home, y_train_home)
+        model_away.fit(X_train_away, y_train_away)
+
+        # Prepare current game features for prediction
+        X_home_game = pd.DataFrame([getattr(row, col) for col in X_home_columns], index=X_home_columns).T
+        X_away_game = pd.DataFrame([getattr(row, col) for col in X_away_columns], index=X_away_columns).T
+
+
+        # Make predictions
+        home_pred = model_home.predict(X_home_game)[0]
+        away_pred = model_away.predict(X_away_game)[0]
+
+        # Get actual values
+        home_y = getattr(row, target_columns[0])
+        away_y = getattr(row, target_columns[1])
 
         # Track errors
-        home_errors.append(abs(home_pred[0] - home_y))
-        away_errors.append(abs(away_pred[0] - away_y))
+        home_errors.append(abs(home_pred - home_y))
+        away_errors.append(abs(away_pred - away_y))
+
+        # Track only later-game errors
+        if i > 600:
+            home_errors_end.append(abs(home_pred - home_y))
+            away_errors_end.append(abs(away_pred - away_y))
 
         # Log progress every 100 games
-        if i % 100 == 0 or i == total_games - 1:
-            logging.info(f"Processed {i+1}/{total_games} games.")
-
-        if i > 500:
-            # Track errors
-            home_errors_end.append(abs(home_pred[0] - home_y))
-            away_errors_end.append(abs(away_pred[0] - away_y))
+        if i % 100 == 0 or i == total_games:
+            logging.info(f"Processed {i}/{total_games} games.")
 
     # Calculate and print overall MAE
     home_mae = np.mean(home_errors)
