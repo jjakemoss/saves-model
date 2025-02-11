@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from abbreviations import nhl_team_dict
 
 # Folder containing all team CSVs (update with your actual path)
 csv_folder = "team_schedules"
@@ -31,7 +32,7 @@ combined_df = pd.concat(df_list, ignore_index=True)
 combined_df['teamSaves_rolling'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=5, adjust=False)  # Exponential weighting
+    .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -41,7 +42,7 @@ combined_df['teamSaves_rolling'] = (
 combined_df['opponentSaves_rolling'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=5, adjust=False)  # Exponential weighting
+    .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -50,7 +51,7 @@ combined_df['opponentSaves_rolling'] = (
 combined_df['teamSaves_rolling_3'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=3, adjust=False)  # Exponential weighting
+    .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -60,7 +61,7 @@ combined_df['teamSaves_rolling_3'] = (
 combined_df['opponentSaves_rolling_3'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=3, adjust=False)  # Exponential weighting
+    .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -70,7 +71,7 @@ combined_df['opponentSaves_rolling_3'] = (
 combined_df['teamSaves_rolling_10'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['teamSaves']
-    .ewm(span=10, adjust=False)  # Exponential weighting
+    .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift to avoid data leakage
     .reset_index(0, drop=True)
@@ -80,7 +81,7 @@ combined_df['teamSaves_rolling_10'] = (
 combined_df['opponentSaves_rolling_10'] = (
     combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
     .groupby('team')['opponentSaves']
-    .ewm(span=10, adjust=False)  # Exponential weighting
+    .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
     .shift(1)  # Shift by 1 to exclude the current game's value
     .reset_index(0, drop=True)
@@ -124,6 +125,13 @@ away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling'
 home_games = combined_df[combined_df['isHome'] == True][home_team_columns]
 away_games = combined_df[combined_df['isHome'] == False][away_team_columns]
 
+# # Map team abbreviations to numerical values
+# home_games['opponent'] = home_games['opponent'].map(nhl_team_dict)
+# home_games['team'] = home_games['team'].map(nhl_team_dict)
+
+# away_games['opponent'] = away_games['opponent'].map(nhl_team_dict)
+# away_games['team'] = away_games['team'].map(nhl_team_dict)
+
 # Rename columns for home and away teams to avoid conflict
 home_games = home_games.rename(columns={
     'teamSaves_rolling': 'home_teamSaves_rolling',
@@ -138,7 +146,6 @@ home_games = home_games.rename(columns={
     'teamSaves': 'home_teamSaves',
     'opponentSaves': 'home_opponentSaves',
     'team': 'home_team',
-    'opponent': 'home_opponent'
 })
 
 away_games = away_games.rename(columns={
@@ -154,11 +161,13 @@ away_games = away_games.rename(columns={
     'teamSaves': 'away_teamSaves',
     'opponentSaves': 'away_opponentSaves',
     'team': 'away_team',
-    'opponent': 'away_opponent'
 })
 
 # Merge the home and away games on 'gameID' to get one row per game
 merged_df = pd.merge(home_games, away_games, on='gameID', how='inner')
+
+del merged_df['opponent_x']
+del merged_df['opponent_y']
 
 merged_df = merged_df.dropna().reset_index(drop=True)
 
