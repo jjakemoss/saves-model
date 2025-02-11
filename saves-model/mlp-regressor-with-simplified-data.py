@@ -18,7 +18,7 @@ error_stats_path = "error_stats.pkl"
 model_home = None
 model_away = None
 
-target_columns = ["home_teamSaves", "away_teamSaves"]
+target_columns = ["teamSaves"]
 
 # Function to calculate additional error metrics
 def calculate_error_metrics(true_values, predicted_values):
@@ -70,18 +70,13 @@ numeric_columns = ['home_teamSaves_rolling', 'home_teamSaves_rolling_3',
 # combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
 
 # One-hot encode the 'home_team' and 'away_team' columns
-combined_df = pd.get_dummies(combined_df, columns=['home_team', 'away_team'], drop_first=False)
+combined_df = pd.get_dummies(combined_df, columns=['team', 'opponent'], drop_first=False)
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
-X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 
-                  'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 
-                  'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
-                  'away_backToBack', 'isHome_y'] + [col for col in combined_df.columns if col.startswith('home_team_') or col.startswith('away_team_')]
-
-X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 
-                  'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 
-                  'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15', 'home_backToBack', 
-                  'isHome_x'] + [col for col in combined_df.columns if col.startswith('away_team_') or col.startswith('home_team_')]
+X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 
+                  'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 
+                  'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                  'backToBack'] + [col for col in combined_df.columns if col.startswith('team_') or col.startswith('opponent_')]
 
 if model_home == None and model_away == None:
     # Set up logging
@@ -103,16 +98,16 @@ if model_home == None and model_away == None:
         alpha=0.001,                    # Slightly increased regularization to prevent overfitting
     )
 
-    model_away = MLPRegressor(
-        hidden_layer_sizes=(50, 25, 10),  # Fewer layers and neurons to reduce model complexity
-        max_iter=20000,                  # A moderate number of iterations
-        warm_start=True,                # Keep training from previous model
-        activation='relu',             # Use relu activation function
-        solver='adam',                 # Using the default optimizer 'adam'
-        learning_rate='adaptive',      # Keep learning rate constant for stability
-        learning_rate_init=0.0005 ,
-        alpha=0.001,                    # Slightly increased regularization to prevent overfitting
-    )
+    # model_away = MLPRegressor(
+    #     hidden_layer_sizes=(50, 25, 10),  # Fewer layers and neurons to reduce model complexity
+    #     max_iter=20000,                  # A moderate number of iterations
+    #     warm_start=True,                # Keep training from previous model
+    #     activation='relu',             # Use relu activation function
+    #     solver='adam',                 # Using the default optimizer 'adam'
+    #     learning_rate='adaptive',      # Keep learning rate constant for stability
+    #     learning_rate_init=0.0005 ,
+    #     alpha=0.001,                    # Slightly increased regularization to prevent overfitting
+    # )
 
     # Initialize lists to track errors
     home_predicted = []
@@ -131,30 +126,25 @@ if model_home == None and model_away == None:
         current_gameID = row.gameDate  # Get the current gameID
 
         home_team = next(
-            col.split("home_team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
-            if "home_team_" in col and getattr(row, col) == 1
+            col.split("team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+            if "team_" in col and getattr(row, col) == 1
         )
 
         away_team = next(
-            col.split("away_team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
-            if "away_team_" in col and getattr(row, col) == 1
+            col.split("opponent_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+            if "opponent_" in col and getattr(row, col) == 1
         )
 
         # Build the column names for filtering the past games
-        home_team_col = "home_team_" + home_team
-        away_team_col = "away_team_" + away_team
-
-        home_away_col = "home_team_" + away_team
-        away_home_col = "away_team_" + home_team
+        home_team_col = "team_" + home_team
+        away_team_col = "opponent_" + away_team
 
         # Filter past games
         past_games = combined_df_sorted[
             (combined_df_sorted["gameDate"] < current_gameID) & 
             (
                 (combined_df_sorted[home_team_col] == 1) | 
-                (combined_df_sorted[away_team_col] == 1) |
-                (combined_df_sorted[home_away_col] == 1) |
-                (combined_df_sorted[away_home_col] == 1)
+                (combined_df_sorted[away_team_col] == 1)
             )
         ]
 
@@ -165,52 +155,39 @@ if model_home == None and model_away == None:
         X_train_home = past_games[X_home_columns]
         y_train_home = past_games[target_columns[0]]
 
-        X_train_away = past_games[X_away_columns]
-        y_train_away = past_games[target_columns[1]]
-
         # Train models on all past games before making predictions
         model_home.fit(X_train_home, y_train_home)
-        model_away.fit(X_train_away, y_train_away)
 
         # Prepare current game features for prediction
         X_home_game = pd.DataFrame([getattr(row, col) for col in X_home_columns], index=X_home_columns).T
-        X_away_game = pd.DataFrame([getattr(row, col) for col in X_away_columns], index=X_away_columns).T
-
+        X_away_game = pd.DataFrame([getattr(row, col) for col in X_home_columns], index=X_home_columns).T
 
         # Make predictions
         home_pred = model_home.predict(X_home_game)[0]
-        away_pred = model_away.predict(X_away_game)[0]
 
         home_predicted.append(home_pred)
-        away_predicted.append(away_pred)
 
         # Get actual values
         home_y = getattr(row, target_columns[0])
-        away_y = getattr(row, target_columns[1])
 
         # Track errors
         home_actual.append(home_y)
-        away_actual.append(away_y)
 
         # Track only later-game errors
         if i > 600:
             home_errors_end.append(abs(home_pred - home_y))
-            away_errors_end.append(abs(away_pred - away_y))
 
         # Log progress every 100 games
         if i % 100 == 0 or i == total_games:
             logging.info(f"Processed {i}/{total_games} games.")
 
     home_mae, home_mse, home_rmse, home_r2 = calculate_error_metrics(home_actual, home_predicted)
-    away_mae, away_mse, away_rmse, away_r2 = calculate_error_metrics(away_actual, away_predicted)
     
     # Print the error metrics for both home and away saves
     print(f"Home Saves - MAE: {home_mae:.2f}, MSE: {home_mse:.2f}, RMSE: {home_rmse:.2f}, R²: {home_r2:.2f}")
-    print(f"Away Saves - MAE: {away_mae:.2f}, MSE: {away_mse:.2f}, RMSE: {away_rmse:.2f}, R²: {away_r2:.2f}")
 
     # Save the models
     joblib.dump(model_home, model_home_path)
-    joblib.dump(model_away, model_away_path)
     print("Models saved for future use.")
 
     # Save error statistics
@@ -218,11 +195,7 @@ if model_home == None and model_away == None:
         "home_mae": home_mae,
         "home_mse": home_mse,
         "home_rmse": home_rmse,
-        "home_r2": home_r2,
-        "away_mae": away_mae,
-        "away_mse": away_mse,
-        "away_rmse": away_rmse,
-        "away_r2": away_r2,
+        "home_r2": home_r2
     }
     joblib.dump(error_stats, "error_stats.pkl")
 
@@ -336,7 +309,6 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
     
     # Make prediction for the home team and away team
     home_prediction = model_home.predict(home_input_df)
-    away_prediction = model_away.predict(away_input_df)
     
     print(f"Predicted saves for {team1} vs {team2}:")
 

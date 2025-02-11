@@ -1,9 +1,13 @@
 import pandas as pd
 import logging
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from scipy.stats import norm
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import joblib
 import os
@@ -14,12 +18,6 @@ error_stats_path = "error_stats.pkl"
 
 model_home = None
 model_away = None
-
-X_home_columns = ['home_team', 'away_team', 'home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
-                    'away_backToBack', 'isHome_y']
-
-X_away_columns = ['away_team', 'home_team', 'away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15',
-                    'home_backToBack', 'isHome_x']
 
 target_columns = ["home_teamSaves", "away_teamSaves"]
 
@@ -41,29 +39,46 @@ if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.pa
 # Load the combined dataset
 combined_df = pd.read_csv("combined_simplified.csv")
 
-team_encoder = LabelEncoder()
+# Select the columns to normalize (numeric features)
+numeric_columns = ['home_teamSaves_rolling', 'home_teamSaves_rolling_3', 
+                  'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 
+                  'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15', 
+                  'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 
+                  'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 
+                  'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15']
 
-# Fit and transform the 'home_team' and 'away_team' columns
-combined_df['home_team'] = team_encoder.fit_transform(combined_df['home_team'])
-combined_df['away_team'] = team_encoder.transform(combined_df['away_team'])
+
+# One-hot encode the 'home_team' and 'away_team' columns
+combined_df = pd.get_dummies(combined_df, columns=['home_team', 'away_team'], drop_first=False)
+
+# Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
+X_home_columns = ['home_backToBack', 'isHome_x', 'home_teamSaves_rolling', 'home_teamSaves_rolling_3', 
+                  'home_teamSaves_rolling_10', 'home_teamSaves_rolling_15', 'away_opponentSaves_rolling', 
+                  'away_opponentSaves_rolling_3', 'away_opponentSaves_rolling_10', 'away_opponentSaves_rolling_15',
+                  'away_backToBack', 'isHome_y'] + [col for col in combined_df.columns if col.startswith('home_team_') or col.startswith('away_team_')]
+
+X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 
+                  'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 
+                  'away_teamSaves_rolling_3', 'away_teamSaves_rolling_10', 'away_teamSaves_rolling_15', 'home_backToBack', 
+                  'isHome_x'] + [col for col in combined_df.columns if col.startswith('away_team_') or col.startswith('home_team_')]
 
 if model_home is None and model_away is None:
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
     logger = logging.getLogger()
 
     # Sort the data by 'gameID' to ensure chronological order
-    combined_df_sorted = combined_df.sort_values(by='gameID')
+    combined_df_sorted = combined_df.sort_values(by='gameDate')
 
     # Initialize RandomForest models
     model_home = RandomForestRegressor(
-        n_estimators=1000,    # Number of trees
+        n_estimators=300,    # Number of trees
         max_depth=10,        # Limit tree depth to prevent overfitting
         random_state=42,
         n_jobs=-1            # Use all CPU cores
     )
 
     model_away = RandomForestRegressor(
-        n_estimators=1000,
+        n_estimators=300,
         max_depth=10,
         random_state=42,
         n_jobs=-1
@@ -77,18 +92,34 @@ if model_home is None and model_away is None:
 
     total_games = len(combined_df_sorted)
 
-    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=600):
-        current_gameID = row.gameID  # Get the current gameID
+    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=500):
+        current_gameID = row.gameDate  # Get the current gameID
 
-        # Use only past games for training
-        # Filter past games for training (exclude the current game)
+        home_team = next(
+            col.split("home_team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+            if "home_team_" in col and getattr(row, col) == 1
+        )
+
+        away_team = next(
+            col.split("away_team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+            if "away_team_" in col and getattr(row, col) == 1
+        )
+
+        # Build the column names for filtering the past games
+        home_team_col = "home_team_" + home_team
+        away_team_col = "away_team_" + away_team
+
+        home_away_col = "home_team_" + away_team
+        away_home_col = "away_team_" + home_team
+
+        # Filter past games
         past_games = combined_df_sorted[
-            (combined_df_sorted["gameID"] < current_gameID) & 
+            (combined_df_sorted["gameDate"] < current_gameID) & 
             (
-                (combined_df_sorted["home_team"] == row.home_team) | 
-                (combined_df_sorted["home_team"] == row.away_team) | 
-                (combined_df_sorted["away_team"] == row.home_team) | 
-                (combined_df_sorted["away_team"] == row.away_team)
+                (combined_df_sorted[home_team_col] == 1) | 
+                (combined_df_sorted[away_team_col] == 1) |
+                (combined_df_sorted[home_away_col] == 1) |
+                (combined_df_sorted[away_home_col] == 1)
             )
         ]
 
@@ -126,11 +157,22 @@ if model_home is None and model_away is None:
             home_errors_end.append(abs(home_pred - home_y))
             away_errors_end.append(abs(away_pred - away_y))
 
-        # Log progress every 100 games
-        if i % 100 == 0 or i == total_games:
-            logging.info(f"Processed {i}/{total_games} games.")
-        if i >= total_games:
+        logging.info(f"Processed {i}/{total_games} games.")
+
+        if i > 550:
             break
+
+    # Extract feature importances for home and away models
+    home_feature_importance = model_home.feature_importances_
+    away_feature_importance = model_away.feature_importances_
+
+    # Create a DataFrame to organize the feature importances
+    home_importance_df = pd.DataFrame({'Feature': X_home_columns, 'Importance': home_feature_importance})
+    away_importance_df = pd.DataFrame({'Feature': X_away_columns, 'Importance': away_feature_importance})
+
+    # Sort by importance (descending order)
+    home_importance_df = home_importance_df.sort_values(by='Importance', ascending=False)
+    away_importance_df = away_importance_df.sort_values(by='Importance', ascending=False)
 
     # Calculate and print overall MAE
     home_mae = np.mean(home_errors)
@@ -162,6 +204,17 @@ if model_home is None and model_away is None:
 
     print("Models and error statistics saved for future use.")
 
+    home_feature_importance = model_home.feature_importances_
+    away_feature_importance = model_away.feature_importances_
+
+    # Create a DataFrame to organize the feature importances
+    home_importance_df = pd.DataFrame({'Feature': X_home_columns, 'Importance': home_feature_importance})
+    away_importance_df = pd.DataFrame({'Feature': X_away_columns, 'Importance': away_feature_importance})
+
+    # Sort by importance (descending order)
+    home_importance_df = home_importance_df.sort_values(by='Importance', ascending=False)
+    away_importance_df = away_importance_df.sort_values(by='Importance', ascending=False)
+
 
 # Function to get matchup data based on team names and game_id
 def get_matchup_data(team1, team2):
@@ -177,8 +230,8 @@ def get_matchup_data(team1, team2):
     team1_rolling_opponent_saves_10 = team1_data['home_opponentSaves_rolling_10'].tail(1).values[0]
     team1_rolling_saves_15 = team1_data['home_teamSaves_rolling_15'].tail(1).values[0]
     team1_rolling_opponent_saves_15 = team1_data['home_opponentSaves_rolling_15'].tail(1).values[0]
-    team1_encoded = team_encoder.transform([team1])[0]
-    team2_encoded = team_encoder.transform([team2])[0]
+    # team1_encoded = team_encoder.transform([team1])[0]
+    # team2_encoded = team_encoder.transform([team2])[0]
 
     # Get the relevant data for team2 (away team)
     team2_data = combined_df[(combined_df['away_team'] == team2)]

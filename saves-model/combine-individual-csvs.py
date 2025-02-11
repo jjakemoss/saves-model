@@ -30,7 +30,7 @@ combined_df = pd.concat(df_list, ignore_index=True)
 
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['teamSaves']
     .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -40,7 +40,7 @@ combined_df['teamSaves_rolling'] = (
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['opponentSaves']
     .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -49,7 +49,7 @@ combined_df['opponentSaves_rolling'] = (
 )
 
 combined_df['teamSaves_rolling_3'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['teamSaves']
     .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -59,7 +59,7 @@ combined_df['teamSaves_rolling_3'] = (
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_3'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['opponentSaves']
     .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -69,7 +69,7 @@ combined_df['opponentSaves_rolling_3'] = (
 
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling_10'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['teamSaves']
     .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -79,7 +79,7 @@ combined_df['teamSaves_rolling_10'] = (
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_10'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['opponentSaves']
     .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
     .mean()
@@ -89,7 +89,7 @@ combined_df['opponentSaves_rolling_10'] = (
 
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling_15'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['teamSaves']
     .ewm(span=15, adjust=False)  # Exponential weighting
     .mean()
@@ -99,7 +99,7 @@ combined_df['teamSaves_rolling_15'] = (
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_15'] = (
-    combined_df.sort_values(by=['team', 'gameID'])  # Ensure order
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
     .groupby('team')['opponentSaves']
     .ewm(span=15, adjust=False)  # Exponential weighting
     .mean()
@@ -107,7 +107,7 @@ combined_df['opponentSaves_rolling_15'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df = combined_df.sort_values(by="gameID").reset_index(drop=True)
+combined_df = combined_df.sort_values(by="gameDate").reset_index(drop=True)
 
 # Save the updated dataframe to a new CSV file
 combined_df.to_csv("combined_with_rolling_averages.csv", index=False)
@@ -118,12 +118,11 @@ print("Updated dataset with rolling averages has been saved to 'combined_with_ro
 combined_df = pd.read_csv("combined_with_rolling_averages.csv")
 
 # Filter out the necessary columns to preserve the team-specific features
-home_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
-away_team_columns = ['gameID', 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3','teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
+home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
+away_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
 
 # Split the data into home and away teams
-home_games = combined_df[combined_df['isHome'] == True][home_team_columns]
-away_games = combined_df[combined_df['isHome'] == False][away_team_columns]
+home_games = combined_df[combined_df['isHome'] != None][home_team_columns]
 
 # # Map team abbreviations to numerical values
 # home_games['opponent'] = home_games['opponent'].map(nhl_team_dict)
@@ -133,43 +132,43 @@ away_games = combined_df[combined_df['isHome'] == False][away_team_columns]
 # away_games['team'] = away_games['team'].map(nhl_team_dict)
 
 # Rename columns for home and away teams to avoid conflict
-home_games = home_games.rename(columns={
-    'teamSaves_rolling': 'home_teamSaves_rolling',
-    'opponentSaves_rolling': 'home_opponentSaves_rolling',
-    'teamSaves_rolling_3': 'home_teamSaves_rolling_3',
-    'opponentSaves_rolling_3': 'home_opponentSaves_rolling_3',
-    'teamSaves_rolling_10': 'home_teamSaves_rolling_10',
-    'opponentSaves_rolling_10': 'home_opponentSaves_rolling_10',
-    'teamSaves_rolling_15': 'home_teamSaves_rolling_15',
-    'opponentSaves_rolling_15': 'home_opponentSaves_rolling_15',
-    'backToBack': 'home_backToBack',
-    'teamSaves': 'home_teamSaves',
-    'opponentSaves': 'home_opponentSaves',
-    'team': 'home_team',
-})
+# home_games = home_games.rename(columns={
+#     'teamSaves_rolling': 'home_teamSaves_rolling',
+#     'opponentSaves_rolling': 'home_opponentSaves_rolling',
+#     'teamSaves_rolling_3': 'home_teamSaves_rolling_3',
+#     'opponentSaves_rolling_3': 'home_opponentSaves_rolling_3',
+#     'teamSaves_rolling_10': 'home_teamSaves_rolling_10',
+#     'opponentSaves_rolling_10': 'home_opponentSaves_rolling_10',
+#     'teamSaves_rolling_15': 'home_teamSaves_rolling_15',
+#     'opponentSaves_rolling_15': 'home_opponentSaves_rolling_15',
+#     'backToBack': 'home_backToBack',
+#     'teamSaves': 'home_teamSaves',
+#     'opponentSaves': 'home_opponentSaves',
+#     'team': 'home_team',
+# })
 
-away_games = away_games.rename(columns={
-    'teamSaves_rolling': 'away_teamSaves_rolling',
-    'opponentSaves_rolling': 'away_opponentSaves_rolling',
-    'teamSaves_rolling_3': 'away_teamSaves_rolling_3',
-    'opponentSaves_rolling_3': 'away_opponentSaves_rolling_3',
-    'teamSaves_rolling_10': 'away_teamSaves_rolling_10',
-    'opponentSaves_rolling_10': 'away_opponentSaves_rolling_10',
-    'teamSaves_rolling_15': 'away_teamSaves_rolling_15',
-    'opponentSaves_rolling_15': 'away_opponentSaves_rolling_15',
-    'backToBack': 'away_backToBack',
-    'teamSaves': 'away_teamSaves',
-    'opponentSaves': 'away_opponentSaves',
-    'team': 'away_team',
-})
+# away_games = away_games.rename(columns={
+#     'teamSaves_rolling': 'away_teamSaves_rolling',
+#     'opponentSaves_rolling': 'away_opponentSaves_rolling',
+#     'teamSaves_rolling_3': 'away_teamSaves_rolling_3',
+#     'opponentSaves_rolling_3': 'away_opponentSaves_rolling_3',
+#     'teamSaves_rolling_10': 'away_teamSaves_rolling_10',
+#     'opponentSaves_rolling_10': 'away_opponentSaves_rolling_10',
+#     'teamSaves_rolling_15': 'away_teamSaves_rolling_15',
+#     'opponentSaves_rolling_15': 'away_opponentSaves_rolling_15',
+#     'backToBack': 'away_backToBack',
+#     'teamSaves': 'away_teamSaves',
+#     'opponentSaves': 'away_opponentSaves',
+#     'team': 'away_team',
+# })
 
 # Merge the home and away games on 'gameID' to get one row per game
-merged_df = pd.merge(home_games, away_games, on='gameID', how='inner')
+# merged_df = pd.merge(home_games, away_games, on=['gameID', 'gameDate'], how='inner')
 
-del merged_df['opponent_x']
-del merged_df['opponent_y']
+# del merged_df['opponent_x']
+# del merged_df['opponent_y']
 
-merged_df = merged_df.dropna().reset_index(drop=True)
+merged_df = home_games.dropna().reset_index(drop=True)
 
 # The final dataset now contains one row per game, with both home and away team data
 merged_df.to_csv('combined_simplified.csv', index=False)

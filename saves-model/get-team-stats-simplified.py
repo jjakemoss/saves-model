@@ -45,7 +45,7 @@ def process_team_schedule(team: str, client: NHLClient):
         # Write the header row only if the file was just created
         if not existing_game_ids:
             csv_writer.writerow([
-                "gameID", "isHome", "opponent", "shotsFor", "shotsAgainst", 
+                "gameID", "gameDate", "isHome", "opponent", "shotsFor", "shotsAgainst", 
                 "goalsFor", "goalsAgainst", "teamSaves", "opponentSaves", 
                 "backToBack"
             ])
@@ -89,7 +89,7 @@ def process_team_schedule(team: str, client: NHLClient):
                     
                     # Write the game stats to the CSV file
                     csv_writer.writerow([
-                        stats.game_id, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
+                        stats.game_id, stats.game_date, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
                         stats.goals_for, stats.goals_against, stats.team_saves, stats.opponent_saves,
                         stats.back_to_back
                     ])
@@ -130,6 +130,8 @@ def parse_team_stats(
         game_stats.shots_against = away_team['sog'] if is_home else home_team['sog']
         game_stats.goals_for = home_team['score'] if is_home else away_team['score']
         game_stats.goals_against = away_team['score'] if is_home else home_team['score']
+
+        game_stats.game_date = datetime.strptime(boxscore['gameDate'], '%Y-%m-%d').date()
 
         # Find the goalie with the most saves
         team_goalies = boxscore['playerByGameStats']['homeTeam']['goalies'] if is_home else boxscore['playerByGameStats']['awayTeam']['goalies']

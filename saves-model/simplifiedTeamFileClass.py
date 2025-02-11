@@ -1,7 +1,11 @@
+from datetime import datetime
+
+
 class HockeyGameSimplified:
     def __init__(
         self,
         game_id: str = "",
+        game_date: datetime = None,
         is_home: bool = False, 
         opponent: str = "", 
         shots_for: int = 0, 
@@ -24,6 +28,7 @@ class HockeyGameSimplified:
         :param back_to_back: (bool) Whether the team is playing on back-to-back days
         """
         self.game_id: str = game_id
+        self.game_date = game_date
         self.is_home: bool = is_home
         self.opponent: str = opponent
         self.shots_for: int = shots_for
