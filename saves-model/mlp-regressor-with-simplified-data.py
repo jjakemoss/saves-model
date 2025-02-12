@@ -58,13 +58,16 @@ combined_df = pd.read_csv("combined_simplified.csv")
 # Select the columns to normalize (numeric features)
 numeric_columns = ['teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
                   'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15']
+                  'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
+                  'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
+                  'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15']
 
 # Initialize the scaler
 scaler = MinMaxScaler()
 
 # Fit and transform the data
-# combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
+combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
 
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
