@@ -63,8 +63,8 @@ combined_df['teamSaves_rolling'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['teamSaves_rolling'].iloc[-1] = None
-combined_df['teamSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'teamSaves_rolling'] = None
+combined_df['teamSaves_rolling'] = combined_df['teamSaves_rolling'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling'] = (
@@ -75,8 +75,8 @@ combined_df['opponentSaves_rolling'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentSaves_rolling'].iloc[-1] = None
-combined_df['opponentSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentSaves_rolling'] = None
+combined_df['opponentSaves_rolling'] = combined_df['opponentSaves_rolling'].shift(1)
 
 combined_df['teamSaves_rolling_3'] = (
     combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
@@ -86,8 +86,8 @@ combined_df['teamSaves_rolling_3'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentSaves_rolling'].iloc[-1] = None
-combined_df['opponentSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentSaves_rolling'] = None
+combined_df['opponentSaves_rolling'] = combined_df['opponentSaves_rolling'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_3'] = (
@@ -98,8 +98,8 @@ combined_df['opponentSaves_rolling_3'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentSaves_rolling_3'].iloc[-1] = None
-combined_df['opponentSaves_rolling_3'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentSaves_rolling_3'] = None
+combined_df['opponentSaves_rolling_3'] = combined_df['opponentSaves_rolling_3'].shift(1)
 
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling_10'] = (
@@ -110,8 +110,8 @@ combined_df['teamSaves_rolling_10'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['teamSaves_rolling_10'].iloc[-1] = None
-combined_df['teamSaves_rolling_10'].shift(1)
+combined_df.at[combined_df.index[-1], 'teamSaves_rolling_10'] = None
+combined_df['teamSaves_rolling_10'] = combined_df['teamSaves_rolling_10'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_10'] = (
@@ -122,8 +122,8 @@ combined_df['opponentSaves_rolling_10'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentSaves_rolling_10'].iloc[-1] = None
-combined_df['opponentSaves_rolling_10'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentSaves_rolling_10'] = None
+combined_df['opponentSaves_rolling_10'] = combined_df['opponentSaves_rolling_10'].shift(1)
 
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling_15'] = (
@@ -134,8 +134,8 @@ combined_df['teamSaves_rolling_15'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['teamSaves_rolling_15'].iloc[-1] = None
-combined_df['teamSaves_rolling_15'].shift(1)
+combined_df.at[combined_df.index[-1], 'teamSaves_rolling_15'] = None
+combined_df['teamSaves_rolling_15'] = combined_df['teamSaves_rolling_15'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_15'] = (
@@ -146,8 +146,8 @@ combined_df['opponentSaves_rolling_15'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentSaves_rolling_15'].iloc[-1] = None
-combined_df['opponentSaves_rolling_15'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentSaves_rolling_15'] = None
+combined_df['opponentSaves_rolling_15'] = combined_df['opponentSaves_rolling_15'].shift(1)
 
 # Rolling averages for team saves (for each team)
 combined_df['opponentTeamSaves_rolling'] = (
@@ -158,8 +158,8 @@ combined_df['opponentTeamSaves_rolling'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentTeamSaves_rolling'].iloc[-1] = None
-combined_df['opponentTeamSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling'] = None
+combined_df['opponentTeamSaves_rolling'] = combined_df['opponentTeamSaves_rolling'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentOpponentSaves_rolling'] = (
@@ -170,8 +170,8 @@ combined_df['opponentOpponentSaves_rolling'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentOpponentSaves_rolling'].iloc[-1] = None
-combined_df['opponentOpponentSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling'] = None
+combined_df['opponentOpponentSaves_rolling'] = combined_df['opponentOpponentSaves_rolling'].shift(1)
 
 combined_df['opponentTeamSaves_rolling_3'] = (
     combined_df.sort_values(by=['opponent', 'gameDate'])  # Ensure order
@@ -181,8 +181,8 @@ combined_df['opponentTeamSaves_rolling_3'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentTeamSaves_rolling_3'].iloc[-1] = None
-combined_df['opponentTeamSaves_rolling_3'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_3'] = None
+combined_df['opponentTeamSaves_rolling_3'] = combined_df['opponentTeamSaves_rolling_3'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentOpponentSaves_rolling_3'] = (
@@ -193,8 +193,8 @@ combined_df['opponentOpponentSaves_rolling_3'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentOpponentSaves_rolling_3'].iloc[-1] = None
-combined_df['opponentOpponentSaves_rolling_3'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_3'] = None
+combined_df['opponentOpponentSaves_rolling_3'] = combined_df['opponentOpponentSaves_rolling_3'].shift(1)
 
 # Rolling averages for team saves (for each team)
 combined_df['opponentTeamSaves_rolling_10'] = (
@@ -205,8 +205,8 @@ combined_df['opponentTeamSaves_rolling_10'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentTeamSaves_rolling_10'].iloc[-1] = None
-combined_df['opponentTeamSaves_rolling_10'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_10'] = None
+combined_df['opponentTeamSaves_rolling_10'] = combined_df['opponentTeamSaves_rolling_10'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentOpponentSaves_rolling_10'] = (
@@ -217,8 +217,8 @@ combined_df['opponentOpponentSaves_rolling_10'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentOpponentSaves_rolling_10'].iloc[-1] = None
-combined_df['opponentOpponentSaves_rolling_10'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_10'] = None
+combined_df['opponentOpponentSaves_rolling_10'] = combined_df['opponentOpponentSaves_rolling_10'].shift(1)
 
 # Rolling averages for team saves (for each team)
 combined_df['opponentTeamSaves_rolling_15'] = (
@@ -229,8 +229,8 @@ combined_df['opponentTeamSaves_rolling_15'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentTeamSaves_rolling_15'].iloc[-1] = None
-combined_df['opponentTeamSaves_rolling_15'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_15'] = None
+combined_df['opponentTeamSaves_rolling_15'] = combined_df['opponentTeamSaves_rolling_15'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentOpponentSaves_rolling_15'] = (
@@ -241,8 +241,8 @@ combined_df['opponentOpponentSaves_rolling_15'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df['opponentOpponentSaves_rolling_15'].iloc[-1] = None
-combined_df['opponentOpponentSaves_rolling_15'].shift(1)
+combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_15'] = None
+combined_df['opponentOpponentSaves_rolling_15'] = combined_df['opponentOpponentSaves_rolling_15'].shift(1)
 
 combined_df = combined_df.sort_values(by="gameDate").reset_index(drop=True)
 
