@@ -145,10 +145,7 @@ if model_home == None and model_away == None:
 
         # Filter past games
         past_games = combined_df_sorted[
-            (combined_df_sorted["gameDate"] < current_gameID) &
-            (
-                (combined_df_sorted['team'] == row.team)
-            )
+            (combined_df_sorted["gameDate"] < current_gameID)
         ]
 
         if past_games.empty:
