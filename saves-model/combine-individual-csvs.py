@@ -231,7 +231,7 @@ combined_df = pd.read_csv("combined_with_rolling_averages.csv")
 # Filter out the necessary columns to preserve the team-specific features
 home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15',
                      'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
-                      'backToBack', 'teamSaves', 'opponentSaves']
+                      'backToBack', 'teamSaves', 'opponentSaves', 'splitGame']
 away_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
 
 # Split the data into home and away teams

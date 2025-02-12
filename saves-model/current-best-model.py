@@ -236,6 +236,14 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
     matchup_input_home = get_matchup_data(team1, team2, True)
     matchup_input_away = get_matchup_data(team2, team1, False)
 
+    team1_data = combined_df_sorted[combined_df_sorted['team'] == team1]
+    # Calculate the overall percentage of split games for team1
+    splitGame_rate = team1_data["splitGame"].mean()
+
+    team2_data = combined_df_sorted[combined_df_sorted['team'] == team2]
+    # Calculate the overall percentage of split games for team1
+    splitGame_rate_2 = team2_data["splitGame"].mean()
+
     # Convert the input dictionaries to DataFrames with appropriate column names
     home_input_df = pd.DataFrame([list(matchup_input_home.values())], columns=X_home_columns)
     away_input_df = pd.DataFrame([list(matchup_input_away.values())], columns=X_home_columns)
@@ -249,8 +257,16 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
 
     print(f"Predicted saves for {team1} vs {team2}:")
 
-    home_prob = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=home_error_std)
-    away_prob = 1 - norm.cdf(away_threshold, loc=away_prediction + home_error_mean, scale=home_error_std)
+    prob_high = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=home_error_std)
+    prob_low = 1 - norm.cdf(home_threshold, loc=home_prediction - home_error_mean, scale=home_error_std)
+
+    # Take the average to balance the skew
+    home_prob = ((prob_high + prob_low) / 2) * (1-splitGame_rate)
+
+    away_prob_high = 1 - norm.cdf(away_threshold, loc=away_prediction + home_error_mean, scale=home_error_std)
+    away_prob_low = 1 - norm.cdf(away_threshold, loc=away_prediction - home_error_mean, scale=home_error_std)
+
+    away_prob = ((away_prob_high + away_prob_low) / 2) * (1-splitGame_rate_2)
 
     print(f"Predicted saves for {team1}: {home_prediction[0]:.2f}, Probability of reaching {home_threshold}: {home_prob[0]:.2%}")
     print(f"Predicted saves for {team2}: {away_prediction[0]:.2f}, Probability of reaching {away_threshold}: {away_prob[0]:.2%}")

@@ -47,7 +47,7 @@ def process_team_schedule(team: str, client: NHLClient):
             csv_writer.writerow([
                 "gameID", "gameDate", "isHome", "opponent", "shotsFor", "shotsAgainst", 
                 "goalsFor", "goalsAgainst", "teamSaves", "opponentSaves", 
-                "backToBack"
+                "backToBack",  "splitGame"
             ])
         
         logging.info(f"Processing schedule for team: {team}")
@@ -91,7 +91,7 @@ def process_team_schedule(team: str, client: NHLClient):
                     csv_writer.writerow([
                         stats.game_id, stats.game_date, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
                         stats.goals_for, stats.goals_against, stats.team_saves, stats.opponent_saves,
-                        stats.back_to_back
+                        stats.back_to_back, stats.split_game
                     ])
                     
                     logging.info(f"Added game {game_id} for team {team}.")
@@ -136,6 +136,8 @@ def parse_team_stats(
         # Find the goalie with the most saves
         team_goalies = boxscore['playerByGameStats']['homeTeam']['goalies'] if is_home else boxscore['playerByGameStats']['awayTeam']['goalies']
         for goalie in team_goalies:
+            if game_stats.team_saves >= 3 and goalie['saves'] >= 3:
+                game_stats.split_game = True
             game_stats.team_saves += goalie['saves']
 
         opponent_goalies = boxscore['playerByGameStats']['homeTeam']['goalies'] if not is_home else boxscore['playerByGameStats']['awayTeam']['goalies']
