@@ -75,6 +75,9 @@ combined_df['opponent_encoded'] = team_encoder.fit_transform(combined_df['oppone
 X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
                   'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
                   'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
+                  'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
+                  'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
                   'backToBack', 'team_encoded', 'opponent_encoded']
 
 if model_home == None and model_away == None:
