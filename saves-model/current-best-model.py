@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import logging
 from sklearn.neural_network import MLPRegressor
@@ -54,9 +54,9 @@ if os.path.exists(model_home_path) and os.path.exists(error_stats_path):
 combined_df = pd.read_csv("combined_simplified.csv")
 
 # Select the columns to normalize (numeric features)
-numeric_columns = ['teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
+numeric_columns = ['teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
                   'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                  'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'opponentTeamSaves_last', 'opponentOpponentSaves_last',
                   'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
                   'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
                   'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15']
@@ -68,9 +68,9 @@ scaler = MinMaxScaler()
 combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
-X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
+X_home_columns = ['isHome', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
                   'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                  'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'opponentTeamSaves_last', 'opponentOpponentSaves_last',
                   'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
                   'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
                   'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
@@ -92,8 +92,8 @@ if model_home == None:
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
         learning_rate='adaptive',      # Keep learning rate constant for stability
-        learning_rate_init=0.0005 ,      # Moderate learning rate
-        alpha=0.001,                    # Slightly increased regularization to prevent overfitting
+        learning_rate_init=0.0005,      # Moderate learning rate
+        alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
     )
 
     # Initialize lists to track errors
@@ -180,8 +180,15 @@ def get_matchup_data(team1, team2, isHome: bool):
     # Convert the last game's date from Pandas Series to a datetime object
     last_game_date = pd.to_datetime(team1_data['gameDate']).iloc[-1]
 
-    # Check if the team is playing on back-to-back days
-    isBacktoBack = (datetime.now().date() - last_game_date.date()).days <= 0
+    yesterday = datetime.now().date() - timedelta(days=1)
+    isBacktoBack = last_game_date.date() == yesterday if not team1_data.empty else False
+
+    # Get the last game's saves for team1 and team2
+    teamSaves_last = team1_data.sort_values(by=['gameDate'])['teamSaves'].iloc[-1] if not team1_data.empty else None
+    opponentSaves_last = team1_data.sort_values(by=['gameDate'])['opponentSaves'].iloc[-1] if not team1_data.empty else None
+
+    opponentTeamSaves_last = team2_data.sort_values(by=['gameDate'])['teamSaves'].iloc[-1] if not team2_data.empty else None
+    opponentOpponentSaves_last = team2_data.sort_values(by=['gameDate'])['opponentSaves'].iloc[-1] if not team2_data.empty else None
 
     # Get the latest rolling values
     teamSaves_rolling = get_rolling_stat(team1_data, 'teamSaves', 'team', span=5)
@@ -210,6 +217,8 @@ def get_matchup_data(team1, team2, isHome: bool):
 
     return {
         'isHome': isHome,
+        'teamSaves_last': teamSaves_last,
+        'opponentSaves_last': opponentSaves_last,
         'teamSaves_rolling': teamSaves_rolling,
         'opponentSaves_rolling': opponentSaves_rolling,
         'teamSaves_rolling_3': teamSaves_rolling_3,
@@ -218,6 +227,8 @@ def get_matchup_data(team1, team2, isHome: bool):
         'opponentSaves_rolling_10': opponentSaves_rolling_10,
         'teamSaves_rolling_15': teamSaves_rolling_15,
         'opponentSaves_rolling_15': opponentSaves_rolling_15,
+        'opponentTeamSaves_last': opponentTeamSaves_last,
+        'opponentOpponentSaves_last': opponentOpponentSaves_last,
         'opponentTeamSaves_rolling': opponentTeamSaves_rolling,
         'opponentOpponentSaves_rolling': opponentOpponentSaves_rolling,
         'opponentTeamSaves_rolling_3': opponentTeamSaves_rolling_3,

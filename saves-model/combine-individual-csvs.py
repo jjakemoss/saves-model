@@ -28,6 +28,32 @@ for file in csv_files:
 # Combine all dataframes into a single dataset
 combined_df = pd.concat(df_list, ignore_index=True)
 
+# Get the last game's saves for each team
+combined_df["teamSaves_last"] = (
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure chronological order
+    .groupby('team')['teamSaves']
+    .shift(1)  # Shift by 1 to get the last game's value
+)
+
+combined_df["opponentSaves_last"] = (
+    combined_df.sort_values(by=['team', 'gameDate'])  # Ensure chronological order
+    .groupby('team')['opponentSaves']
+    .shift(1)
+)
+
+# Get the last game's saves for each team
+combined_df["opponentTeamSaves_last"] = (
+    combined_df.sort_values(by=['opponent', 'gameDate'])  # Ensure chronological order
+    .groupby('opponent')['teamSaves']
+    .shift(1)  # Shift by 1 to get the last game's value
+)
+
+combined_df["opponentOpponentSaves_last"] = (
+    combined_df.sort_values(by=['opponent', 'gameDate'])  # Ensure chronological order
+    .groupby('opponent')['opponentSaves']
+    .shift(1)
+)
+
 # Rolling averages for team saves (for each team)
 combined_df['teamSaves_rolling'] = (
     combined_df.sort_values(by=['team', 'gameDate'])  # Ensure order
@@ -229,8 +255,8 @@ print("Updated dataset with rolling averages has been saved to 'combined_with_ro
 combined_df = pd.read_csv("combined_with_rolling_averages.csv")
 
 # Filter out the necessary columns to preserve the team-specific features
-home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15',
-                     'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
+home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15',
+                     'opponentTeamSaves_last', 'opponentOpponentSaves_last', 'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
                       'backToBack', 'teamSaves', 'opponentSaves', 'splitGame']
 away_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'backToBack', 'teamSaves', 'opponentSaves']
 
