@@ -36,21 +36,21 @@ def calculate_error_metrics(true_values, predicted_values):
 
     return mae, mse, rmse, r2
 
-if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.path.exists(error_stats_path):
-    use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
+# if os.path.exists(model_home_path) and os.path.exists(model_away_path) and os.path.exists(error_stats_path):
+#     use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
 
-    if use_saved_model == "yes" or use_saved_model == "y":
-        print("Loading saved models...")
-        print("Loading saved models and error statistics...")
-        model_home = joblib.load(model_home_path)
-        model_away = joblib.load(model_away_path)
-        error_stats = joblib.load(error_stats_path)
+#     if use_saved_model == "yes" or use_saved_model == "y":
+#         print("Loading saved models...")
+#         print("Loading saved models and error statistics...")
+#         model_home = joblib.load(model_home_path)
+#         model_away = joblib.load(model_away_path)
+#         error_stats = joblib.load(error_stats_path)
 
-        # Retrieve saved error statistics
-        home_error_mean = error_stats["home_error_mean"]
-        home_error_std = error_stats["home_error_std"]
-        away_error_mean = error_stats["away_error_mean"]
-        away_error_std = error_stats["away_error_std"]
+#         # Retrieve saved error statistics
+#         home_error_mean = error_stats["home_error_mean"]
+#         home_error_std = error_stats["home_error_std"]
+#         away_error_mean = error_stats["away_error_mean"]
+#         away_error_std = error_stats["away_error_std"]
 
 # Load the combined dataset with rolling averages
 combined_df = pd.read_csv("combined_simplified.csv")
@@ -144,8 +144,7 @@ if model_home == None and model_away == None:
         past_games = combined_df_sorted[
             (combined_df_sorted["gameDate"] < current_gameID) &
             (
-                (combined_df_sorted['team'] == row.team) |
-                (combined_df_sorted['opponent'] == row.opponent)
+                (combined_df_sorted['team'] == row.team)
             )
         ]
 
