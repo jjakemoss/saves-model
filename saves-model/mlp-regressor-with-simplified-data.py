@@ -66,10 +66,6 @@ scaler = MinMaxScaler()
 # Fit and transform the data
 # combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
 
-team_encoder = LabelEncoder()
-combined_df['team_encoded'] = team_encoder.fit_transform(combined_df['team'])
-combined_df['opponent_encoded'] = team_encoder.fit_transform(combined_df['opponent'])
-
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
 X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
@@ -78,7 +74,7 @@ X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamS
                   'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
                   'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
                   'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
-                  'backToBack', 'team_encoded', 'opponent_encoded']
+                  'backToBack']
 
 if model_home == None and model_away == None:
     # Set up logging

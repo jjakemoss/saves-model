@@ -49,13 +49,19 @@ numeric_columns = ['home_teamSaves_rolling', 'home_teamSaves_rolling_3',
 
 
 # One-hot encode the 'home_team' and 'away_team' columns
-combined_df = pd.get_dummies(combined_df, columns=['team', 'opponent'], drop_first=False)
+# combined_df = pd.get_dummies(combined_df, columns=['team', 'opponent'], drop_first=False)
+team_encoder = LabelEncoder()
+combined_df['team_encoded'] = team_encoder.fit_transform(combined_df['team'])
+combined_df['opponent_encoded'] = team_encoder.fit_transform(combined_df['opponent'])
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
-X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 
-                  'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 
+X_home_columns = ['isHome', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
+                  'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
                   'teamSaves_rolling_15', 'opponentSaves_rolling_15',
-                  'backToBack'] + [col for col in combined_df.columns if col.startswith('team_') or col.startswith('opponent_')]
+                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
+                  'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
+                  'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
+                  'backToBack', 'team_encoded', 'opponent_encoded']
 
 X_away_columns = ['away_backToBack', 'isHome_y', 'home_opponentSaves_rolling', 'home_opponentSaves_rolling_3', 
                   'home_opponentSaves_rolling_10', 'home_opponentSaves_rolling_15', 'away_teamSaves_rolling', 
@@ -71,7 +77,7 @@ if model_home is None and model_away is None:
 
     # Initialize RandomForest models
     model_home = RandomForestRegressor(
-        n_estimators=300,    # Number of trees
+        n_estimators=500,    # Number of trees
         max_depth=10,        # Limit tree depth to prevent overfitting
         random_state=42,
         n_jobs=-1            # Use all CPU cores
@@ -92,30 +98,26 @@ if model_home is None and model_away is None:
 
     total_games = len(combined_df_sorted)
 
-    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=500):
+    for i, row in enumerate(combined_df_sorted.itertuples(index=False), start=1500):
         current_gameID = row.gameDate  # Get the current gameID
 
-        home_team = next(
-            col.split("team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
-            if "team_" in col and getattr(row, col) == 1
-        )
+        # home_team = next(
+        #     col.split("team_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+        #     if "team_" in col and getattr(row, col) == 1
+        # )
 
-        away_team = next(
-            col.split("opponent_")[1] for idx, col in enumerate(combined_df_sorted.columns)
-            if "opponent_" in col and getattr(row, col) == 1
-        )
+        # away_team = next(
+        #     col.split("opponent_")[1] for idx, col in enumerate(combined_df_sorted.columns)
+        #     if "opponent_" in col and getattr(row, col) == 1
+        # )
 
-        # Build the column names for filtering the past games
-        home_team_col = "team_" + home_team
-        away_team_col = "opponent_" + away_team
+        # # Build the column names for filtering the past games
+        # home_team_col = "team_" + home_team
+        # away_team_col = "opponent_" + away_team
 
         # Filter past games
         past_games = combined_df_sorted[
-            (combined_df_sorted["gameDate"] < current_gameID) & 
-            (
-                (combined_df_sorted[home_team_col] == 1) | 
-                (combined_df_sorted[away_team_col] == 1)
-            )
+            (combined_df_sorted["gameDate"] < current_gameID)
         ]
 
         if past_games.empty:
@@ -145,7 +147,7 @@ if model_home is None and model_away is None:
 
         logging.info(f"Processed {i}/{total_games} games.")
 
-        if i > 550:
+        if i >= total_games:
             break
 
     # Extract feature importances for home and away models
