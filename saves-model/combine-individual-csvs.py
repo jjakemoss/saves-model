@@ -3,7 +3,7 @@ import os
 from abbreviations import nhl_team_dict
 
 # Folder containing all team CSVs (update with your actual path)
-csv_folder = "team_schedules"
+csv_folder = "S:/Documents/GitHub/saves-model/team_schedules"
 
 # List all CSV files in the folder
 csv_files = [f for f in os.listdir(csv_folder) if f.endswith(".csv")]
@@ -246,14 +246,6 @@ combined_df['opponentOpponentSaves_rolling_15'] = combined_df['opponentOpponentS
 
 combined_df = combined_df.sort_values(by="gameDate").reset_index(drop=True)
 
-# Save the updated dataframe to a new CSV file
-combined_df.to_csv("combined_with_rolling_averages.csv", index=False)
-
-print("Updated dataset with rolling averages has been saved to 'combined_with_rolling_averages.csv'")
-
-# Load the combined dataset
-combined_df = pd.read_csv("combined_with_rolling_averages.csv")
-
 # Filter out the necessary columns to preserve the team-specific features
 home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15',
                      'opponentTeamSaves_last', 'opponentOpponentSaves_last', 'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
@@ -263,51 +255,7 @@ away_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSa
 # Split the data into home and away teams
 home_games = combined_df[combined_df['isHome'] != None][home_team_columns]
 
-# # Map team abbreviations to numerical values
-# home_games['opponent'] = home_games['opponent'].map(nhl_team_dict)
-# home_games['team'] = home_games['team'].map(nhl_team_dict)
-
-# away_games['opponent'] = away_games['opponent'].map(nhl_team_dict)
-# away_games['team'] = away_games['team'].map(nhl_team_dict)
-
-# Rename columns for home and away teams to avoid conflict
-# home_games = home_games.rename(columns={
-#     'teamSaves_rolling': 'home_teamSaves_rolling',
-#     'opponentSaves_rolling': 'home_opponentSaves_rolling',
-#     'teamSaves_rolling_3': 'home_teamSaves_rolling_3',
-#     'opponentSaves_rolling_3': 'home_opponentSaves_rolling_3',
-#     'teamSaves_rolling_10': 'home_teamSaves_rolling_10',
-#     'opponentSaves_rolling_10': 'home_opponentSaves_rolling_10',
-#     'teamSaves_rolling_15': 'home_teamSaves_rolling_15',
-#     'opponentSaves_rolling_15': 'home_opponentSaves_rolling_15',
-#     'backToBack': 'home_backToBack',
-#     'teamSaves': 'home_teamSaves',
-#     'opponentSaves': 'home_opponentSaves',
-#     'team': 'home_team',
-# })
-
-# away_games = away_games.rename(columns={
-#     'teamSaves_rolling': 'away_teamSaves_rolling',
-#     'opponentSaves_rolling': 'away_opponentSaves_rolling',
-#     'teamSaves_rolling_3': 'away_teamSaves_rolling_3',
-#     'opponentSaves_rolling_3': 'away_opponentSaves_rolling_3',
-#     'teamSaves_rolling_10': 'away_teamSaves_rolling_10',
-#     'opponentSaves_rolling_10': 'away_opponentSaves_rolling_10',
-#     'teamSaves_rolling_15': 'away_teamSaves_rolling_15',
-#     'opponentSaves_rolling_15': 'away_opponentSaves_rolling_15',
-#     'backToBack': 'away_backToBack',
-#     'teamSaves': 'away_teamSaves',
-#     'opponentSaves': 'away_opponentSaves',
-#     'team': 'away_team',
-# })
-
-# Merge the home and away games on 'gameID' to get one row per game
-# merged_df = pd.merge(home_games, away_games, on=['gameID', 'gameDate'], how='inner')
-
-# del merged_df['opponent_x']
-# del merged_df['opponent_y']
-
 merged_df = home_games.dropna().reset_index(drop=True)
 
 # The final dataset now contains one row per game, with both home and away team data
-merged_df.to_csv('combined_simplified.csv', index=False)
+merged_df.to_csv('S:/Documents/GitHub/saves-model/combined_simplified.csv', index=False)

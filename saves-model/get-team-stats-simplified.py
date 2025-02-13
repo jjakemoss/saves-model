@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 def create_shedule_csvs():
     # Ensure the directory for CSV files exists
-    os.makedirs("team_schedules", exist_ok=True)
+    os.makedirs("S:/Documents/GitHub/saves-model/team_schedules", exist_ok=True)
 
     client = NHLClient()
 
@@ -26,7 +26,7 @@ def create_shedule_csvs():
 
 
 def process_team_schedule(team: str, client: NHLClient):
-    csv_file_path = f"team_schedules/{team}_schedule.csv"
+    csv_file_path = f"S:/Documents/GitHub/saves-model/team_schedules/{team}_schedule.csv"
     existing_game_ids = set()
 
     # Check if the CSV file exists and load existing game IDs
