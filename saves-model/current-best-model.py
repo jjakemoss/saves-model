@@ -12,8 +12,8 @@ import numpy as np
 import joblib
 import os
 
-model_home_path = "model_home.pkl"
-error_stats_path = "error_stats.pkl"
+model_home_path = "S:/Documents/GitHub/saves-model/model_home.pkl"
+error_stats_path = "S:/Documents/GitHub/saves-model/error_stats.pkll"
 
 model_home = None
 
@@ -51,7 +51,7 @@ if os.path.exists(model_home_path) and os.path.exists(error_stats_path):
         home_error_std = error_stats["home_std"]
 
 # Load the combined dataset with rolling averages
-combined_df = pd.read_csv("combined_simplified.csv")
+combined_df = pd.read_csv("S:/Documents/GitHub/saves-model/combined_simplified.csv")
 
 # Select the columns to normalize (numeric features)
 numeric_columns = ['teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
@@ -157,7 +157,7 @@ if model_home == None:
         "home_r2": home_r2,
         "home_std": home_error_std
     }
-    joblib.dump(error_stats, "error_stats.pkl")
+    joblib.dump(error_stats, error_stats_path)
 
     print("Models and error statistics saved for future use.")
 
@@ -175,7 +175,7 @@ def get_rolling_stat(df, column, group_col, span, min_periods=3):
 def get_matchup_data(team1, team2, isHome: bool):
     # Get the relevant data for team1 (home team)
     team1_data = combined_df_sorted[combined_df_sorted['team'] == team1]
-    team2_data = combined_df_sorted[combined_df_sorted['opponent'] == team2]
+    team2_data = combined_df_sorted[combined_df_sorted['team'] == team2]
 
     # Convert the last game's date from Pandas Series to a datetime object
     last_game_date = pd.to_datetime(team1_data['gameDate']).iloc[-1]
@@ -203,17 +203,17 @@ def get_matchup_data(team1, team2, isHome: bool):
     teamSaves_rolling_15 = get_rolling_stat(team1_data, 'teamSaves', 'team', span=15)
     opponentSaves_rolling_15 = get_rolling_stat(team1_data, 'opponentSaves', 'team', span=15)
 
-    opponentTeamSaves_rolling = get_rolling_stat(team2_data, 'teamSaves', 'opponent', span=5)
-    opponentOpponentSaves_rolling = get_rolling_stat(team2_data, 'opponentSaves', 'opponent', span=5)
+    opponentTeamSaves_rolling = get_rolling_stat(team2_data, 'teamSaves', 'team', span=5)
+    opponentOpponentSaves_rolling = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=5)
 
-    opponentTeamSaves_rolling_3 = get_rolling_stat(team2_data, 'teamSaves', 'opponent', span=3)
-    opponentOpponentSaves_rolling_3 = get_rolling_stat(team2_data, 'opponentSaves', 'opponent', span=3)
+    opponentTeamSaves_rolling_3 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=3)
+    opponentOpponentSaves_rolling_3 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=3)
 
-    opponentTeamSaves_rolling_10 = get_rolling_stat(team2_data, 'teamSaves', 'opponent', span=10)
-    opponentOpponentSaves_rolling_10 = get_rolling_stat(team2_data, 'opponentSaves', 'opponent', span=10)
+    opponentTeamSaves_rolling_10 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=10)
+    opponentOpponentSaves_rolling_10 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=10)
 
-    opponentTeamSaves_rolling_15 = get_rolling_stat(team2_data, 'teamSaves', 'opponent', span=15)
-    opponentOpponentSaves_rolling_15 = get_rolling_stat(team2_data, 'opponentSaves', 'opponent', span=15)
+    opponentTeamSaves_rolling_15 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=15)
+    opponentOpponentSaves_rolling_15 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=15)
 
     return {
         'isHome': isHome,
