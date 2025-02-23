@@ -54,3 +54,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020856,2025-02-04,False,ANA,27,28,1,2,26,26,False,False
 2024020875,2025-02-07,False,LAK,30,37,4,5,33,26,False,False
 2024020889,2025-02-08,False,SJS,34,27,8,3,24,26,True,False
+2024020897,2025-02-22,False,NJD,26,33,4,2,31,22,False,False

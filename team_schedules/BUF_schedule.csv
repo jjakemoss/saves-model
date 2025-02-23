@@ -53,3 +53,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020835,2025-02-02,True,NJD,34,24,4,3,21,30,False,False
 2024020846,2025-02-04,True,CBJ,21,29,3,2,27,18,False,False
 2024020885,2025-02-08,False,NSH,29,23,4,6,17,25,False,False
+2024020895,2025-02-22,True,NYR,33,28,8,2,26,25,False,False

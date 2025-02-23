@@ -55,3 +55,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020865,2025-02-06,False,CBJ,33,22,3,2,20,30,False,False
 2024020878,2025-02-08,False,CAR,39,38,3,7,31,36,False,False
 2024020890,2025-02-09,False,WSH,27,42,5,4,38,23,True,True
+2024020904,2025-02-22,False,LAK,28,26,3,5,21,25,False,False
