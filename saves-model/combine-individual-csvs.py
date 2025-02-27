@@ -149,102 +149,36 @@ combined_df['opponentSaves_rolling_15'] = (
 combined_df.at[combined_df.index[-1], 'opponentSaves_rolling_15'] = None
 combined_df['opponentSaves_rolling_15'] = combined_df['opponentSaves_rolling_15'].shift(1)
 
-# Rolling averages for team saves (for each team)
-combined_df['opponentTeamSaves_rolling'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['opponentSaves']
-    .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
+# Remove previous opponent rolling calculations
+combined_df.to_csv('S:/Documents/GitHub/saves-model/combined_check.csv', index=False)
 
-combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling'] = None
-combined_df['opponentTeamSaves_rolling'] = combined_df['opponentTeamSaves_rolling'].shift(1)
+combined_df = combined_df.sort_values(by=['gameDate', 'gameID'])
 
-# Rolling averages for opponent saves (for each team)
-combined_df['opponentOpponentSaves_rolling'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['teamSaves']
-    .ewm(span=5, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
+# Create a mapping of gameID to its corresponding rows
+id_map = combined_df.groupby('gameID').apply(lambda x: x.index.tolist()).to_dict()
 
-combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling'] = None
-combined_df['opponentOpponentSaves_rolling'] = combined_df['opponentOpponentSaves_rolling'].shift(1)
-
-combined_df['opponentTeamSaves_rolling_3'] = (
-    combined_df.sort_values(['gameDate'])  # Ensure order
-    .groupby('opponent')['opponentSaves']
-    .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_3'] = None
-combined_df['opponentTeamSaves_rolling_3'] = combined_df['opponentTeamSaves_rolling_3'].shift(1)
-
-# Rolling averages for opponent saves (for each team)
-combined_df['opponentOpponentSaves_rolling_3'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['teamSaves']
-    .ewm(span=3, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_3'] = None
-combined_df['opponentOpponentSaves_rolling_3'] = combined_df['opponentOpponentSaves_rolling_3'].shift(1)
-
-# Rolling averages for team saves (for each team)
-combined_df['opponentTeamSaves_rolling_10'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['opponentSaves']
-    .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_10'] = None
-combined_df['opponentTeamSaves_rolling_10'] = combined_df['opponentTeamSaves_rolling_10'].shift(1)
-
-# Rolling averages for opponent saves (for each team)
-combined_df['opponentOpponentSaves_rolling_10'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['teamSaves']
-    .ewm(span=10, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_10'] = None
-combined_df['opponentOpponentSaves_rolling_10'] = combined_df['opponentOpponentSaves_rolling_10'].shift(1)
-
-# Rolling averages for team saves (for each team)
-combined_df['opponentTeamSaves_rolling_15'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['opponentSaves']
-    .ewm(span=15, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentTeamSaves_rolling_15'] = None
-combined_df['opponentTeamSaves_rolling_15'] = combined_df['opponentTeamSaves_rolling_15'].shift(1)
-
-# Rolling averages for opponent saves (for each team)
-combined_df['opponentOpponentSaves_rolling_15'] = (
-    combined_df.sort_values(by=['gameDate', 'gameID'])  # Ensure order
-    .groupby('opponent')['teamSaves']
-    .ewm(span=15, adjust=False, min_periods=3)  # Exponential weighting
-    .mean()
-    .reset_index(0, drop=True)
-)
-
-combined_df.at[combined_df.index[-1], 'opponentOpponentSaves_rolling_15'] = None
-combined_df['opponentOpponentSaves_rolling_15'] = combined_df['opponentOpponentSaves_rolling_15'].shift(1)
-
-combined_df = combined_df.sort_values(by="gameDate").reset_index(drop=True)
+# Iterate through the dataframe and match values based on gameID
+for game_id, indices in id_map.items():
+    if len(indices) == 2:
+        idx1, idx2 = indices
+        
+        # Assign opponent values from the other row with the same gameID
+        combined_df.at[idx1, 'opponentTeamSaves_rolling'] = combined_df.at[idx2, 'teamSaves_rolling']
+        combined_df.at[idx1, 'opponentOpponentSaves_rolling'] = combined_df.at[idx2, 'opponentSaves_rolling']
+        combined_df.at[idx2, 'opponentTeamSaves_rolling'] = combined_df.at[idx1, 'teamSaves_rolling']
+        combined_df.at[idx2, 'opponentOpponentSaves_rolling'] = combined_df.at[idx1, 'opponentSaves_rolling']
+        
+        # Loop through different spans to set rolling values dynamically
+        for span in [3, 10, 15]:
+            team_col = f'teamSaves_rolling_{span}'
+            opponent_col = f'opponentSaves_rolling_{span}'
+            opp_team_col = f'opponentTeamSaves_rolling_{span}'
+            opp_opp_col = f'opponentOpponentSaves_rolling_{span}'
+            
+            combined_df.at[idx1, opp_team_col] = combined_df.at[idx2, team_col]
+            combined_df.at[idx1, opp_opp_col] = combined_df.at[idx2, opponent_col]
+            combined_df.at[idx2, opp_team_col] = combined_df.at[idx1, team_col]
+            combined_df.at[idx2, opp_opp_col] = combined_df.at[idx1, opponent_col]
 
 # Filter out the necessary columns to preserve the team-specific features
 home_team_columns = ['gameID', "gameDate", 'isHome', 'opponent', 'team', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3', 'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10', 'teamSaves_rolling_15', 'opponentSaves_rolling_15',
