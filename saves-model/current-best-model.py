@@ -90,13 +90,13 @@ if model_home == None:
 
     # Initialize MLPRegressor models for both teams with tuned parameters
     model_home = MLPRegressor(
-        hidden_layer_sizes=(50, 25, 10),  # Fewer layers and neurons to reduce model complexity
+        hidden_layer_sizes=(25, 10),  # Fewer layers and neurons to reduce model complexity
         max_iter=20000,                  # A moderate number of iterations
         warm_start=True,                # Keep training from previous model
         activation='relu',             # Use relu activation function
         solver='adam',                 # Using the default optimizer 'adam'
         learning_rate='adaptive',      # Keep learning rate constant for stability
-        learning_rate_init=0.0005,      # Moderate learning rate
+        learning_rate_init=0.001,      # Moderate learning rate
         alpha=0.0001,                    # Slightly increased regularization to prevent overfitting
     )
 
