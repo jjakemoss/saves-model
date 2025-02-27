@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 import pandas as pd
 import logging
 from sklearn.neural_network import MLPRegressor
@@ -243,12 +244,35 @@ def get_matchup_data(team1, team2, isHome: bool):
         'backToBack': isBacktoBack
     }
 
+# Convert NumPy types to native Python types
+def convert_numpy(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)  # Convert int64 -> int
+    elif isinstance(obj, np.floating):
+        return float(obj)  # Convert float64 -> float
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()  # Convert NumPy arrays -> lists
+    else:
+        return obj  # Return the object as-is if it's already serializable
 
 # Function to predict saves for a new matchup
 def predict_saves(team1, team2, home_threshold, away_threshold):
     # Get the features for the matchup using the get_matchup_data function
     matchup_input_home = get_matchup_data(team1, team2, True)
     matchup_input_away = get_matchup_data(team2, team1, False)
+
+    # Combine both matchup inputs into a dictionary
+    matchup_data = {
+        team1: {k: convert_numpy(v) for k, v in matchup_input_home.items()},
+        team2: {k: convert_numpy(v) for k, v in matchup_input_away.items()}
+    }
+
+    # Define a file path
+    file_path = f"prediction-games/{team1}-{team2}.json"
+
+    # Write the data to a file in a readable format
+    with open(file_path, "w") as f:
+        json.dump(matchup_data, f, indent=4)  # indent=4 makes it more readable
 
     team1_data = combined_df_sorted[combined_df_sorted['team'] == team1]
     # Calculate the overall percentage of split games for team1
