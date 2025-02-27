@@ -86,8 +86,8 @@ combined_df['teamSaves_rolling_3'] = (
     .reset_index(0, drop=True)
 )
 
-combined_df.at[combined_df.index[-1], 'opponentSaves_rolling'] = None
-combined_df['opponentSaves_rolling'] = combined_df['opponentSaves_rolling'].shift(1)
+combined_df.at[combined_df.index[-1], 'teamSaves_rolling_3'] = None
+combined_df['teamSaves_rolling_3'] = combined_df['teamSaves_rolling_3'].shift(1)
 
 # Rolling averages for opponent saves (for each team)
 combined_df['opponentSaves_rolling_3'] = (

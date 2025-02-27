@@ -62,7 +62,7 @@ def process_team_schedule(team: str, client: NHLClient):
                     continue
                 
                 curr_game_date = datetime.strptime(game['gameDate'], '%Y-%m-%d').date()
-                if (datetime.now().date() - curr_game_date).days <= 0:
+                if (datetime.now().date() - curr_game_date).days < 0:
                     logging.info(f"Skipping future game {game['id']}.")
                     continue
                 
