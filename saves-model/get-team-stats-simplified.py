@@ -6,6 +6,7 @@ from abbreviations import *
 from simplifiedTeamFileClass import HockeyGameSimplified
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
+from chickenstats.chicken_nhl import Scraper, Game
 
 
 # Configure logging
@@ -73,6 +74,8 @@ def process_team_schedule(team: str, client: NHLClient):
                 
                 try:
                     boxscore = client.game_center.boxscore(game_id=game_id)
+                    game = Game(game_id)
+                    stats = scraper.team_stats
                     if not boxscore or 'homeTeam' not in boxscore or 'awayTeam' not in boxscore:
                         logging.warning(f"Skipping game {game_id} due to incomplete data.")
                         continue
