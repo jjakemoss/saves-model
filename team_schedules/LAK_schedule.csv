@@ -54,3 +54,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020888,2025-02-08,True,ANA,45,26,1,2,25,44,True,False
 2024020904,2025-02-22,True,UTA,26,28,5,3,25,21,False,False
 2024020917,2025-02-24,True,VGK,19,23,5,2,21,14,False,False
+2024020932,2025-02-26,True,VAN,26,17,2,3,14,24,False,False

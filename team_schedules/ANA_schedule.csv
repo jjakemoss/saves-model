@@ -56,3 +56,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020899,2025-02-22,False,BOS,29,30,3,2,28,26,False,True
 2024020908,2025-02-23,False,DET,28,36,4,5,31,24,False,False
 2024020919,2025-02-25,False,BUF,18,37,2,3,34,16,False,False
+2024020944,,True,VAN,0,0,0,0,0,0,False,False

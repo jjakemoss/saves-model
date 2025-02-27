@@ -57,3 +57,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020891,2025-02-09,True,TBL,35,21,3,5,16,32,True,True
 2024020901,2025-02-22,False,OTT,25,27,5,2,25,20,False,False
 2024020920,2025-02-25,True,CAR,18,20,4,0,20,14,False,False
+2024020934,,True,SJS,0,0,0,0,0,0,False,False

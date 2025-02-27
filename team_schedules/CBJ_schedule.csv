@@ -57,3 +57,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020882,2025-02-08,True,NYR,25,40,3,4,36,22,False,False
 2024020902,2025-02-22,True,CHI,21,28,5,1,27,16,False,False
 2024020924,2025-02-25,True,DAL,29,22,6,4,18,23,False,False
+2024020935,,False,DET,0,0,0,0,0,0,False,False

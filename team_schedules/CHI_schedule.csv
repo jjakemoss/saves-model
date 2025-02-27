@@ -57,3 +57,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020902,2025-02-22,False,CBJ,28,21,1,5,16,27,False,False
 2024020912,2025-02-23,True,TOR,27,30,2,5,25,25,False,False
 2024020929,2025-02-25,False,UTA,22,36,1,2,34,21,False,False
+2024020943,,False,VGK,0,0,0,0,0,0,False,False

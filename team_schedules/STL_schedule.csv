@@ -58,3 +58,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020903,2025-02-22,True,WPG,24,28,3,4,25,21,False,False
 2024020910,2025-02-23,True,COL,25,29,3,1,28,22,False,False
 2024020926,2025-02-25,True,SEA,27,27,7,2,25,20,False,False
+2024020939,,False,WSH,0,0,0,0,0,0,False,False

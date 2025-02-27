@@ -58,3 +58,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020904,2025-02-22,False,LAK,28,26,3,5,21,25,False,False
 2024020915,2025-02-23,True,VAN,32,15,2,1,14,30,False,False
 2024020929,2025-02-25,True,CHI,36,22,2,1,21,34,False,False
+2024020942,,True,MIN,0,0,0,0,0,0,False,False

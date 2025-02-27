@@ -57,3 +57,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020886,2025-02-08,True,NYI,33,35,6,3,32,28,False,False
 2024020894,2025-02-22,False,DET,39,30,4,3,27,35,False,False
 2024020928,2025-02-25,True,DET,24,16,2,3,13,22,False,False
+2024020942,,False,UTA,0,0,0,0,0,0,False,False

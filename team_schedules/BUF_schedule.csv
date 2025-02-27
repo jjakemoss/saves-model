@@ -55,3 +55,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020885,2025-02-08,False,NSH,29,23,4,6,17,25,False,False
 2024020895,2025-02-22,True,NYR,33,28,8,2,26,25,False,False
 2024020919,2025-02-25,True,ANA,37,18,3,2,16,34,False,False
+2024020940,,False,CAR,0,0,0,0,0,0,False,False
