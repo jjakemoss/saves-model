@@ -54,3 +54,5 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020850,2025-02-04,True,VGK,14,34,2,1,33,12,False,False
 2024020872,2025-02-07,False,WPG,35,27,3,4,23,32,False,False
 2024020886,2025-02-08,False,MIN,35,33,3,6,28,32,True,False
+2024020913,2025-02-23,True,DAL,37,29,3,4,25,34,False,False
+2024020925,2025-02-25,True,NYR,37,18,1,5,13,36,False,True

@@ -56,3 +56,4 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020852,2025-02-04,True,CAR,30,29,3,0,29,27,False,False
 2024020872,2025-02-07,True,NYI,27,35,4,3,32,23,False,False
 2024020903,2025-02-22,False,STL,28,24,4,3,21,25,False,False
+2024020916,2025-02-24,True,SJS,35,18,2,1,17,33,False,False

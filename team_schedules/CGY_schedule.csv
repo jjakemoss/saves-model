@@ -54,3 +54,5 @@ gameID,gameDate,isHome,opponent,shotsFor,shotsAgainst,goalsFor,goalsAgainst,team
 2024020853,2025-02-04,True,TOR,26,30,3,6,24,23,False,False
 2024020868,2025-02-06,True,COL,29,34,2,4,30,27,False,False
 2024020887,2025-02-08,True,SEA,29,28,2,3,25,27,False,False
+2024020914,2025-02-23,True,SJS,36,29,3,2,27,33,False,False
+2024020923,2025-02-25,False,WSH,25,27,3,1,26,22,False,False

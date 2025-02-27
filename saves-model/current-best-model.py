@@ -78,6 +78,9 @@ X_home_columns = ['isHome', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_r
 
 combined_df_sorted = combined_df.sort_values(by='gameDate')
 
+home_saves_std = combined_df_sorted["teamSaves"].std()
+away_saves_std = combined_df_sorted["opponentSaves"].std()
+
 if model_home == None:
     # Set up logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -268,16 +271,11 @@ def predict_saves(team1, team2, home_threshold, away_threshold):
 
     print(f"Predicted saves for {team1} vs {team2}:")
 
-    prob_high = 1 - norm.cdf(home_threshold, loc=home_prediction + home_error_mean, scale=home_error_std)
-    prob_low = 1 - norm.cdf(home_threshold, loc=home_prediction - home_error_mean, scale=home_error_std)
+    home_prob = 1 - norm.cdf(home_threshold, loc=home_prediction, scale=home_saves_std)
+    home_prob *= (1 - splitGame_rate)  # Adjust for split games
 
-    # Take the average to balance the skew
-    home_prob = ((prob_high + prob_low) / 2) * (1-splitGame_rate)
-
-    away_prob_high = 1 - norm.cdf(away_threshold, loc=away_prediction + home_error_mean, scale=home_error_std)
-    away_prob_low = 1 - norm.cdf(away_threshold, loc=away_prediction - home_error_mean, scale=home_error_std)
-
-    away_prob = ((away_prob_high + away_prob_low) / 2) * (1-splitGame_rate_2)
+    away_prob = 1 - norm.cdf(away_threshold, loc=away_prediction, scale=away_saves_std)
+    away_prob *= (1 - splitGame_rate_2)
 
     print(f"Predicted saves for {team1}: {home_prediction[0]:.2f}, Probability of reaching {home_threshold}: {home_prob[0]:.2%}")
     print(f"Predicted saves for {team2}: {away_prediction[0]:.2f}, Probability of reaching {away_threshold}: {away_prob[0]:.2%}")
