@@ -150,8 +150,6 @@ combined_df.at[combined_df.index[-1], 'opponentSaves_rolling_15'] = None
 combined_df['opponentSaves_rolling_15'] = combined_df['opponentSaves_rolling_15'].shift(1)
 
 # Remove previous opponent rolling calculations
-combined_df.to_csv('S:/Documents/GitHub/saves-model/combined_check.csv', index=False)
-
 combined_df = combined_df.sort_values(by=['gameDate', 'gameID'])
 
 # Create a mapping of gameID to its corresponding rows
