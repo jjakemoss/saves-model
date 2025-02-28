@@ -6,7 +6,8 @@ from abbreviations import *
 from simplifiedTeamFileClass import HockeyGameSimplified
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from chickenstats.chicken_nhl import Scraper, Game
+from chickenstats.chicken_nhl import Game
+from chickenstats.evolving_hockey.stats import prep_team
 
 
 # Configure logging
@@ -24,6 +25,21 @@ def create_shedule_csvs():
         # Submit a task for each team to be processed in parallel
         for team in nhl_team_abbreviations_2025:
             executor.submit(process_team_schedule, team, client)
+
+
+def get_advanced_stats(team, team_abb):
+    net_corsi_for = 0
+    net_corsi_against = 0
+    net_fenwick_for = 0
+    net_fenwick_against = 0
+    for index, row in team.iterrows():
+        if row.team == team_abb:
+            net_corsi_for += row.cf
+            net_corsi_against += row.ca
+            net_fenwick_for += row.ff
+            net_fenwick_against += row.fa
+
+    return net_corsi_for, net_corsi_against, net_fenwick_for, net_fenwick_against
 
 
 def process_team_schedule(team: str, client: NHLClient):
@@ -75,11 +91,12 @@ def process_team_schedule(team: str, client: NHLClient):
                 try:
                     boxscore = client.game_center.boxscore(game_id=game_id)
                     game = Game(game_id)
-                    stats = scraper.team_stats
+                    pbpfd = game.play_by_play_df
+                    team_prepped = prep_team(pbpfd)
+                    team_corsi_for, team_corsi_against, team_fenwick_for, team_fenwick_against = get_advanced_stats(team_prepped, team)
                     if not boxscore or 'homeTeam' not in boxscore or 'awayTeam' not in boxscore:
                         logging.warning(f"Skipping game {game_id} due to incomplete data.")
                         continue
-
                     game_stats = HockeyGameSimplified()
                     game_stats.game_id = game_id
                     home_team = boxscore['homeTeam']
