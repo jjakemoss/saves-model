@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, PowerTransformer, StandardScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from scipy.stats import norm
@@ -55,12 +55,42 @@ if os.path.exists(model_home_path) and os.path.exists(error_stats_path):
 combined_df = pd.read_csv("S:/Documents/GitHub/saves-model/combined_simplified.csv")
 
 # Select the columns to normalize (numeric features)
-numeric_columns = ['teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
-                  'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'opponentTeamSaves_last', 'opponentOpponentSaves_last',
-                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
-                  'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
-                  'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15']
+numeric_columns = ['teamSaves_last', 'opponentSaves_last', 
+                   'teamSaves_rolling', 'opponentSaves_rolling', 
+                   'teamSaves_rolling_3', 'opponentSaves_rolling_3', 
+                   'teamSaves_rolling_10', 'opponentSaves_rolling_10', 
+                   'teamSaves_rolling_15', 'opponentSaves_rolling_15', 
+
+                   'opponentTeamSaves_last', 'opponentOpponentSaves_last', 
+                   'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 
+                   'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 
+                   'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 
+                   'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
+
+                   'teamCorsi_last', 'opponentCorsi_last', 
+                   'teamCorsi_rolling', 'opponentCorsi_rolling', 
+                   'teamCorsi_rolling_3', 'opponentCorsi_rolling_3', 
+                   'teamCorsi_rolling_10', 'opponentCorsi_rolling_10', 
+                   'teamCorsi_rolling_15', 'opponentCorsi_rolling_15',
+
+                   'opponentTeamCorsi_last', 'opponentOpponentCorsi_last', 
+                   'opponentTeamCorsi_rolling', 'opponentOpponentCorsi_rolling', 
+                   'opponentTeamCorsi_rolling_3', 'opponentOpponentCorsi_rolling_3', 
+                   'opponentTeamCorsi_rolling_10', 'opponentOpponentCorsi_rolling_10', 
+                   'opponentTeamCorsi_rolling_15', 'opponentOpponentCorsi_rolling_15',
+
+                   'teamFen_last', 'opponentFenwick_last', 
+                   'teamFenwick_rolling', 'opponentFenwick_rolling', 
+                   'teamFenwick_rolling_3', 'opponentFenwick_rolling_3', 
+                   'teamFenwick_rolling_10', 'opponentFenwick_rolling_10', 
+                   'teamFenwick_rolling_15', 'opponentFenwick_rolling_15',
+
+                   'opponentTeamFenwick_last', 'opponentOpponentFenwick_last', 
+                   'opponentTeamFenwick_rolling', 'opponentOpponentFenwick_rolling', 
+                   'opponentTeamFenwick_rolling_3', 'opponentOpponentFenwick_rolling_3', 
+                   'opponentTeamFenwick_rolling_10', 'opponentOpponentFenwick_rolling_10', 
+                   'opponentTeamFenwick_rolling_15', 'opponentOpponentFenwick_rolling_15']
+
 
 # Initialize the scaler
 scaler = MinMaxScaler()
@@ -69,13 +99,45 @@ scaler = MinMaxScaler()
 combined_df[numeric_columns] = scaler.fit_transform(combined_df[numeric_columns])
 
 # Update the X_home_columns and X_away_columns lists to include the one-hot encoded columns
-X_home_columns = ['isHome', 'teamSaves_last', 'opponentSaves_last', 'teamSaves_rolling', 'opponentSaves_rolling', 'teamSaves_rolling_3',
-                  'opponentSaves_rolling_3', 'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15', 'opponentTeamSaves_last', 'opponentOpponentSaves_last',
-                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 'opponentTeamSaves_rolling_3',
-                  'opponentOpponentSaves_rolling_3', 'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
+X_home_columns = ['isHome', 
+                  'teamSaves_last', 'opponentSaves_last', 
+                  'teamSaves_rolling', 'opponentSaves_rolling', 
+                  'teamSaves_rolling_3', 'opponentSaves_rolling_3', 
+                  'teamSaves_rolling_10', 'opponentSaves_rolling_10', 
+                  'teamSaves_rolling_15', 'opponentSaves_rolling_15', 
+
+                  'opponentTeamSaves_last', 'opponentOpponentSaves_last', 
+                  'opponentTeamSaves_rolling', 'opponentOpponentSaves_rolling', 
+                  'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3', 
+                  'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10', 
                   'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
+
+                  'teamCorsi_last', 'opponentCorsi_last', 
+                  'teamCorsi_rolling', 'opponentCorsi_rolling', 
+                  'teamCorsi_rolling_3', 'opponentCorsi_rolling_3', 
+                  'teamCorsi_rolling_10', 'opponentCorsi_rolling_10', 
+                  'teamCorsi_rolling_15', 'opponentCorsi_rolling_15',
+
+                  'opponentTeamCorsi_last', 'opponentOpponentCorsi_last', 
+                  'opponentTeamCorsi_rolling', 'opponentOpponentCorsi_rolling', 
+                  'opponentTeamCorsi_rolling_3', 'opponentOpponentCorsi_rolling_3', 
+                  'opponentTeamCorsi_rolling_10', 'opponentOpponentCorsi_rolling_10', 
+                  'opponentTeamCorsi_rolling_15', 'opponentOpponentCorsi_rolling_15',
+
+                  'teamFen_last', 'opponentFenwick_last', 
+                  'teamFenwick_rolling', 'opponentFenwick_rolling', 
+                  'teamFenwick_rolling_3', 'opponentFenwick_rolling_3', 
+                  'teamFenwick_rolling_10', 'opponentFenwick_rolling_10', 
+                  'teamFenwick_rolling_15', 'opponentFenwick_rolling_15',
+
+                  'opponentTeamFenwick_last', 'opponentOpponentFenwick_last', 
+                  'opponentTeamFenwick_rolling', 'opponentOpponentFenwick_rolling', 
+                  'opponentTeamFenwick_rolling_3', 'opponentOpponentFenwick_rolling_3', 
+                  'opponentTeamFenwick_rolling_10', 'opponentOpponentFenwick_rolling_10', 
+                  'opponentTeamFenwick_rolling_15', 'opponentOpponentFenwick_rolling_15',
+
                   'backToBack']
+
 
 combined_df_sorted = combined_df.sort_values(by='gameDate')
 
@@ -177,15 +239,15 @@ def get_rolling_stat(df, column, group_col, span, min_periods=3):
 
 # Function to get matchup data based on team names and game_id
 def get_matchup_data(team1, team2, isHome: bool):
-    # Get the relevant data for team1 (home team)
+    # Get the relevant data for team1 (home team) and team2 (away team)
     team1_data = combined_df_sorted[combined_df_sorted['team'] == team1]
     team2_data = combined_df_sorted[combined_df_sorted['team'] == team2]
 
     # Convert the last game's date from Pandas Series to a datetime object
-    last_game_date = pd.to_datetime(team1_data['gameDate']).iloc[-1]
+    last_game_date = pd.to_datetime(team1_data['gameDate']).iloc[-1] if not team1_data.empty else None
 
     yesterday = datetime.now().date() - timedelta(days=1)
-    isBacktoBack = last_game_date.date() == yesterday if not team1_data.empty else False
+    isBacktoBack = last_game_date.date() == yesterday if last_game_date else False
 
     # Get the last game's saves for team1 and team2
     teamSaves_last = team1_data.sort_values(by=['gameDate'])['teamSaves'].iloc[-1] if not team1_data.empty else None
@@ -194,54 +256,58 @@ def get_matchup_data(team1, team2, isHome: bool):
     opponentTeamSaves_last = team2_data.sort_values(by=['gameDate'])['teamSaves'].iloc[-1] if not team2_data.empty else None
     opponentOpponentSaves_last = team2_data.sort_values(by=['gameDate'])['opponentSaves'].iloc[-1] if not team2_data.empty else None
 
-    # Get the latest rolling values
-    teamSaves_rolling = get_rolling_stat(team1_data, 'teamSaves', 'team', span=5)
-    opponentSaves_rolling = get_rolling_stat(team1_data, 'opponentSaves', 'team', span=5)
+    # Get the latest rolling values for saves
+    def get_saves_rolling(span):
+        return {
+            f'teamSaves_rolling_{span}': get_rolling_stat(team1_data, 'teamSaves', 'team', span=span),
+            f'opponentSaves_rolling_{span}': get_rolling_stat(team1_data, 'opponentSaves', 'team', span=span),
+            f'opponentTeamSaves_rolling_{span}': get_rolling_stat(team2_data, 'teamSaves', 'team', span=span),
+            f'opponentOpponentSaves_rolling_{span}': get_rolling_stat(team2_data, 'opponentSaves', 'team', span=span)
+        }
 
-    teamSaves_rolling_3 = get_rolling_stat(team1_data, 'teamSaves', 'team', span=3)
-    opponentSaves_rolling_3 = get_rolling_stat(team1_data, 'opponentSaves', 'team', span=3)
+    # Get the latest rolling values for Corsi
+    def get_corsi_rolling(span):
+        return {
+            f'teamCorsi_rolling_{span}': get_rolling_stat(team1_data, 'corsiFor', 'team', span=span),
+            f'opponentCorsi_rolling_{span}': get_rolling_stat(team1_data, 'corsiAgainst', 'team', span=span),
+            f'opponentTeamCorsi_rolling_{span}': get_rolling_stat(team2_data, 'corsiFor', 'team', span=span),
+            f'opponentOpponentCorsi_rolling_{span}': get_rolling_stat(team2_data, 'corsiAgainst', 'team', span=span)
+        }
 
-    teamSaves_rolling_10 = get_rolling_stat(team1_data, 'teamSaves', 'team', span=10)
-    opponentSaves_rolling_10 = get_rolling_stat(team1_data, 'opponentSaves', 'team', span=10)
+    # Get the latest rolling values for Fenwick
+    def get_fenwick_rolling(span):
+        return {
+            f'teamFenwick_rolling_{span}': get_rolling_stat(team1_data, 'fenwickFor', 'team', span=span),
+            f'opponentFenwick_rolling_{span}': get_rolling_stat(team1_data, 'fenwickAgainst', 'team', span=span),
+            f'opponentTeamFenwick_rolling_{span}': get_rolling_stat(team2_data, 'fenwickFor', 'team', span=span),
+            f'opponentOpponentFenwick_rolling_{span}': get_rolling_stat(team2_data, 'fenwickAgainst', 'team', span=span)
+        }
 
-    teamSaves_rolling_15 = get_rolling_stat(team1_data, 'teamSaves', 'team', span=15)
-    opponentSaves_rolling_15 = get_rolling_stat(team1_data, 'opponentSaves', 'team', span=15)
-
-    opponentTeamSaves_rolling = get_rolling_stat(team2_data, 'teamSaves', 'team', span=5)
-    opponentOpponentSaves_rolling = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=5)
-
-    opponentTeamSaves_rolling_3 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=3)
-    opponentOpponentSaves_rolling_3 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=3)
-
-    opponentTeamSaves_rolling_10 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=10)
-    opponentOpponentSaves_rolling_10 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=10)
-
-    opponentTeamSaves_rolling_15 = get_rolling_stat(team2_data, 'teamSaves', 'team', span=15)
-    opponentOpponentSaves_rolling_15 = get_rolling_stat(team2_data, 'opponentSaves', 'team', span=15)
+    # Generate rolling statistics for spans 3, 5, 10, 15
+    rolling_spans = [3, 5, 10, 15]
+    rolling_data = {}
+    
+    for span in rolling_spans:
+        rolling_data.update(get_saves_rolling(span))
+        rolling_data.update(get_corsi_rolling(span))
+        rolling_data.update(get_fenwick_rolling(span))
 
     return {
         'isHome': isHome,
         'teamSaves_last': teamSaves_last,
         'opponentSaves_last': opponentSaves_last,
-        'teamSaves_rolling': teamSaves_rolling,
-        'opponentSaves_rolling': opponentSaves_rolling,
-        'teamSaves_rolling_3': teamSaves_rolling_3,
-        'opponentSaves_rolling_3': opponentSaves_rolling_3,
-        'teamSaves_rolling_10': teamSaves_rolling_10,
-        'opponentSaves_rolling_10': opponentSaves_rolling_10,
-        'teamSaves_rolling_15': teamSaves_rolling_15,
-        'opponentSaves_rolling_15': opponentSaves_rolling_15,
         'opponentTeamSaves_last': opponentTeamSaves_last,
         'opponentOpponentSaves_last': opponentOpponentSaves_last,
-        'opponentTeamSaves_rolling': opponentTeamSaves_rolling,
-        'opponentOpponentSaves_rolling': opponentOpponentSaves_rolling,
-        'opponentTeamSaves_rolling_3': opponentTeamSaves_rolling_3,
-        'opponentOpponentSaves_rolling_3': opponentOpponentSaves_rolling_3,
-        'opponentTeamSaves_rolling_10': opponentTeamSaves_rolling_10,
-        'opponentOpponentSaves_rolling_10': opponentOpponentSaves_rolling_10,
-        'opponentTeamSaves_rolling_15': opponentTeamSaves_rolling_15,
-        'opponentOpponentSaves_rolling_15': opponentOpponentSaves_rolling_15,
-        'backToBack': isBacktoBack
+        'teamCorsi_last': team1_data.sort_values(by=['gameDate'])['corsiFor'].iloc[-1] if not team1_data.empty else None,
+        'opponentCorsi_last': team1_data.sort_values(by=['gameDate'])['corsiAgainst'].iloc[-1] if not team1_data.empty else None,
+        'opponentTeamCorsi_last': team2_data.sort_values(by=['gameDate'])['corsiFor'].iloc[-1] if not team2_data.empty else None,
+        'opponentOpponentCorsi_last': team2_data.sort_values(by=['gameDate'])['corsiAgainst'].iloc[-1] if not team2_data.empty else None,
+        'teamFen_last': team1_data.sort_values(by=['gameDate'])['fenwickFor'].iloc[-1] if not team1_data.empty else None,
+        'opponentFenwick_last': team1_data.sort_values(by=['gameDate'])['fenwickAgainst'].iloc[-1] if not team1_data.empty else None,
+        'opponentTeamFenwick_last': team2_data.sort_values(by=['gameDate'])['fenwickFor'].iloc[-1] if not team2_data.empty else None,
+        'opponentOpponentFenwick_last': team2_data.sort_values(by=['gameDate'])['fenwickAgainst'].iloc[-1] if not team2_data.empty else None,
+        'backToBack': isBacktoBack,
+        **rolling_data
     }
 
 # Convert NumPy types to native Python types

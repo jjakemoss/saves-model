@@ -15,7 +15,11 @@ class HockeyGameSimplified:
         team_saves: int = 0,
         opponent_saves: int = 0,
         back_to_back: bool = False,
-        split_game: bool = False
+        split_game: bool = False,
+        corsi_for: int = 0,
+        corsi_against: int = 0,
+        fenwick_for: int = 0,
+        fenwick_against: int = 0
     ):
         """
         Initialize a HockeyGame instance.
@@ -40,6 +44,10 @@ class HockeyGameSimplified:
         self.opponent_saves: int = opponent_saves
         self.back_to_back: bool = back_to_back
         self.split_game: bool = split_game
+        self.corsi_for: int = corsi_for
+        self.corsi_against: int = corsi_against
+        self.fenwick_for: int = fenwick_for
+        self.fenwick_against: int = fenwick_against
 
     def __str__(self) -> str:
         """

@@ -21,7 +21,7 @@ def create_shedule_csvs():
     client = NHLClient()
 
     # Create a ThreadPoolExecutor with a number of worker threads
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
         # Submit a task for each team to be processed in parallel
         for team in nhl_team_abbreviations_2025:
             executor.submit(process_team_schedule, team, client)
@@ -45,6 +45,7 @@ def get_advanced_stats(team, team_abb):
 def process_team_schedule(team: str, client: NHLClient):
     csv_file_path = f"S:/Documents/GitHub/saves-model/team_schedules/{team}_schedule.csv"
     existing_game_ids = set()
+    retry_needed = False
 
     # Check if the CSV file exists and load existing game IDs
     if os.path.exists(csv_file_path):
@@ -64,7 +65,7 @@ def process_team_schedule(team: str, client: NHLClient):
             csv_writer.writerow([
                 "gameID", "gameDate", "isHome", "opponent", "shotsFor", "shotsAgainst", 
                 "goalsFor", "goalsAgainst", "teamSaves", "opponentSaves", 
-                "backToBack",  "splitGame"
+                "backToBack",  "splitGame", "corsiFor", "corsiAgainst", "fenwickFor", "fenwickAgainst"
             ])
         
         logging.info(f"Processing schedule for team: {team}")
@@ -93,7 +94,6 @@ def process_team_schedule(team: str, client: NHLClient):
                     game = Game(game_id)
                     pbpfd = game.play_by_play_df
                     team_prepped = prep_team(pbpfd)
-                    team_corsi_for, team_corsi_against, team_fenwick_for, team_fenwick_against = get_advanced_stats(team_prepped, team)
                     if not boxscore or 'homeTeam' not in boxscore or 'awayTeam' not in boxscore:
                         logging.warning(f"Skipping game {game_id} due to incomplete data.")
                         continue
@@ -106,12 +106,15 @@ def process_team_schedule(team: str, client: NHLClient):
                         stats = parse_team_stats(True, prev_game, boxscore, game_stats, home_team, away_team)
                     else:
                         stats = parse_team_stats(False, prev_game, boxscore, game_stats, home_team, away_team)
+
+                    stats.corsi_for, stats.corsi_against, stats.fenwick_for, stats.fenwick_against = get_advanced_stats(team_prepped, team)
                     
                     # Write the game stats to the CSV file
                     csv_writer.writerow([
                         stats.game_id, stats.game_date, stats.is_home, stats.opponent, stats.shots_for, stats.shots_against,
                         stats.goals_for, stats.goals_against, stats.team_saves, stats.opponent_saves,
-                        stats.back_to_back, stats.split_game
+                        stats.back_to_back, stats.split_game, stats.corsi_for, stats.corsi_against,
+                        stats.fenwick_for, stats.fenwick_against
                     ])
                     
                     logging.info(f"Added game {game_id} for team {team}.")
@@ -119,9 +122,15 @@ def process_team_schedule(team: str, client: NHLClient):
 
                 except Exception as game_error:
                     logging.error(f"Error processing game {game_id}: {game_error}")
+                    retry_needed = True
+                    break
 
         except Exception as team_error:
             logging.error(f"Error processing team {team}: {team_error}")
+            raise team_error
+
+    if retry_needed:
+        process_team_schedule(team, client)
 
 
 def parse_team_stats(
