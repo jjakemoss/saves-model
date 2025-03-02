@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from itertools import product
 import json
 import pandas as pd
 import logging
@@ -20,6 +21,30 @@ model_home = None
 
 target_columns = ["teamSaves"]
 
+hidden_layer_sizes_options = [
+    (100, 50, 25),  # Larger network to capture complex relationships
+    (75, 40, 15),   # Slightly smaller, but still robust
+    (50, 25),        # A more moderate size
+    (100, 50)         # A wider, shallower network
+]
+
+learning_rate_init_options = [
+    0.0001,  # Lower end for stability, especially with more features
+    0.0005,  # Moderate learning rate
+    0.001,   # Standard starting point
+    0.002,   # Higher end to see if faster convergence is possible
+]
+
+alpha_options = [
+    0.0001,  # Starting point, mild regularization
+    0.0005,  # Increased regularization to combat overfitting
+    0.001,   # Moderate regularization
+    0.005,   # Higher regularization, good for complex models
+]
+
+# Generate all combinations
+param_grid = list(product(hidden_layer_sizes_options, learning_rate_init_options, alpha_options))
+
 # Function to calculate additional error metrics
 def calculate_error_metrics(true_values, predicted_values):
     # Mean Absolute Error
@@ -37,19 +62,6 @@ def calculate_error_metrics(true_values, predicted_values):
     error_std = np.std(np.array(true_values) - np.array(predicted_values))
 
     return mae, mse, rmse, r2, error_std
-
-if os.path.exists(model_home_path) and os.path.exists(error_stats_path):
-    use_saved_model = input("Saved models found. Do you want to use the existing models? (yes/no): ").strip().lower()
-
-    if use_saved_model == "yes" or use_saved_model == "y":
-        print("Loading saved models...")
-        print("Loading saved models and error statistics...")
-        model_home = joblib.load(model_home_path)
-        error_stats = joblib.load(error_stats_path)
-
-        # Retrieve saved error statistics
-        home_error_mean = error_stats["home_mae"]
-        home_error_std = error_stats["home_std"]
 
 # Load the combined dataset with rolling averages
 combined_df = pd.read_csv("S:/Documents/GitHub/saves-model/combined_simplified.csv")
@@ -143,6 +155,8 @@ combined_df_sorted = combined_df.sort_values(by='gameDate')
 
 home_saves_std = combined_df_sorted["teamSaves"].std()
 away_saves_std = combined_df_sorted["opponentSaves"].std()
+
+best_mae = 0
 
 if model_home == None:
     # Set up logging
