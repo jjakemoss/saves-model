@@ -1,106 +1,88 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.neural_network import MLPRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
-from xgboost import XGBRegressor
-from lightgbm import LGBMRegressor
-from sklearn.linear_model import Ridge, Lasso, ElasticNet
-from sklearn.kernel_ridge import KernelRidge
+import pandas as pd
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import Lasso
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler
+
+# Load the dataset
+data = pd.read_csv('combined_simplified.csv')
+
+# Drop rows with missing values
+data.dropna(inplace=True)
 
 # Define the features and target
 X_home_columns = ['isHome',
-                  'teamSaves_last', 'opponentSaves_last',
-                  'teamSaves_rolling_5', 'opponentSaves_rolling_5',
-                  'teamSaves_rolling_3', 'opponentSaves_rolling_3',
-                  'teamSaves_rolling_10', 'opponentSaves_rolling_10',
-                  'teamSaves_rolling_15', 'opponentSaves_rolling_15',
-
-                  'opponentTeamSaves_last', 'opponentOpponentSaves_last',
-                  'opponentTeamSaves_rolling_5', 'opponentOpponentSaves_rolling_5',
-                  'opponentTeamSaves_rolling_3', 'opponentOpponentSaves_rolling_3',
-                  'opponentTeamSaves_rolling_10', 'opponentOpponentSaves_rolling_10',
-                  'opponentTeamSaves_rolling_15', 'opponentOpponentSaves_rolling_15',
-
-                  'teamCorsi_last', 'opponentCorsi_last',
-                  'teamCorsi_rolling_5', 'opponentCorsi_rolling_5',
-                  'teamCorsi_rolling_3', 'opponentCorsi_rolling_3',
-                  'teamCorsi_rolling_10', 'opponentCorsi_rolling_10',
-                  'teamCorsi_rolling_15', 'opponentCorsi_rolling_15',
-
-                  'opponentTeamCorsi_last', 'opponentOpponentCorsi_last',
-                  'opponentTeamCorsi_rolling_5', 'opponentOpponentCorsi_rolling_5',
-                  'opponentTeamCorsi_rolling_3', 'opponentOpponentCorsi_rolling_3',
-                  'opponentTeamCorsi_rolling_10', 'opponentOpponentCorsi_rolling_10',
-                  'opponentTeamCorsi_rolling_15', 'opponentOpponentCorsi_rolling_15',
-
-                  'teamFenwick_last', 'opponentFenwick_last',
-                  'teamFenwick_rolling_5', 'opponentFenwick_rolling_5',
-                  'teamFenwick_rolling_3', 'opponentFenwick_rolling_3',
-                  'teamFenwick_rolling_10', 'opponentFenwick_rolling_10',
-                  'teamFenwick_rolling_15', 'opponentFenwick_rolling_15',
-
-                  'opponentTeamFenwick_last', 'opponentOpponentFenwick_last',
-                  'opponentTeamFenwick_rolling_5', 'opponentOpponentFenwick_rolling_5',
-                  'opponentTeamFenwick_rolling_3', 'opponentOpponentFenwick_rolling_3',
-                  'opponentTeamFenwick_rolling_10', 'opponentOpponentFenwick_rolling_10',
-                  'opponentTeamFenwick_rolling_15', 'opponentOpponentFenwick_rolling_15',
-
+                  'teamSaves_last',
+                  'teamSaves_rolling_5',
+                  'teamSaves_rolling_3',
+                  'teamSaves_rolling_10',
+                  'teamSaves_rolling_15',
+                  'opponentOpponentSaves_last',
+                  'opponentOpponentSaves_rolling_5',
+                  'opponentOpponentSaves_rolling_3',
+                  'opponentOpponentSaves_rolling_10',
+                  'opponentOpponentSaves_rolling_15',
+                  'opponentCorsi_last',
+                  'opponentCorsi_rolling_5',
+                  'opponentCorsi_rolling_3',
+                  'opponentCorsi_rolling_10',
+                  'opponentCorsi_rolling_15',
+                  'opponentTeamCorsi_last',
+                  'opponentTeamCorsi_rolling_5',
+                  'opponentTeamCorsi_rolling_3',
+                  'opponentTeamCorsi_rolling_10',
+                  'opponentTeamCorsi_rolling_15',
+                  'opponentFenwick_last',
+                  'opponentFenwick_rolling_5',
+                  'opponentFenwick_rolling_3',
+                  'opponentFenwick_rolling_10',
+                  'opponentFenwick_rolling_15',
+                  'opponentTeamFenwick_last',
+                  'opponentTeamFenwick_rolling_5',
+                  'opponentTeamFenwick_rolling_3',
+                  'opponentTeamFenwick_rolling_10',
+                  'opponentTeamFenwick_rolling_15',
                   'backToBack']
+
 y_home_column = 'teamSaves'
 
-df = pd.read_csv('S:/Documents/GitHub/saves-model/combined_simplified.csv')
+# Prepare data
+X = data[X_home_columns]
+y = data[y_home_column]
 
-# Drop rows with NA values
-df_cleaned = df.dropna(subset=X_home_columns + [y_home_column])
+# Best parameters for Lasso: {'alpha': 0.5, 'max_iter': 1000, 'selection': 'random', 'tol': 0.1}
 
-# Split data into features (X) and target (y)
-X = df_cleaned[X_home_columns]
-y = df_cleaned[y_home_column]
-
-# Split data into training and testing sets
+# Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initialize models
-models = [
-    LinearRegression(),
-    SVR(),
-    DecisionTreeRegressor(),
-    RandomForestRegressor(),
-    GradientBoostingRegressor(),
-    KNeighborsRegressor(),
-    MLPRegressor(),
-    XGBRegressor(),
-    LGBMRegressor(),
-    Ridge(),
-    Lasso(),
-    ElasticNet(),
-    KernelRidge()
-]
+# Define Lasso hyperparameter grid
+lasso_param_grid = {
+    'alpha': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100],  # Most important parameter
+    'max_iter': [500, 1000, 5000, 10000],  # Helps with convergence
+    'tol': [1e-4, 1e-3, 1e-2, 1e-1],  # Convergence tolerance
+    'selection': ['cyclic', 'random']  # Optimization method
+}
 
-# Train and evaluate models
-for model in models:
-    # Train the model
-    model.fit(X_train, y_train)
+# Perform Grid Search for Lasso model
+lasso_model = Lasso()
+grid_search = GridSearchCV(lasso_model, lasso_param_grid, scoring='neg_mean_absolute_error', cv=5, n_jobs=-1)
+grid_search.fit(X_train, y_train)
 
-    # Make predictions on the test set
-    y_pred = model.predict(X_test)
+# Get best model
+best_lasso = grid_search.best_estimator_
+print('Best parameters for Lasso:', grid_search.best_params_)
 
-    # Evaluate the model
-    mae = mean_absolute_error(y_test, y_pred)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mse)
-    r2 = r2_score(y_test, y_pred)
+# Evaluate the best model
+y_pred = best_lasso.predict(X_test)
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
 
-    # Print the evaluation metrics
-    print(f"Model: {model.__class__.__name__}")
-    print(f"Mean Absolute Error (MAE): {mae}")
-    print(f"Mean Squared Error (MSE): {mse}")
-    print(f"Root Mean Squared Error (RMSE): {rmse}")
-    print(f"R-squared (R2): {r2}")
-    print("-" * 20)
+print('\nLasso Model Performance:')
+print(f'Mean Absolute Error: {mae}')
+print(f'Mean Squared Error: {mse}')
+print(f'Root Mean Squared Error: {rmse}')
+print(f'R-squared: {r2}')

@@ -4,45 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f2c6996-ca30-48af-9a52-8ecdcbac8022" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/saves-model/combine-individual-csvs.py" beforeDir="false" afterPath="$PROJECT_DIR$/saves-model/combine-individual-csvs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/saves-model/current-best-model.py" beforeDir="false" afterPath="$PROJECT_DIR$/saves-model/current-best-model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/saves-model/get-team-stats-simplified.py" beforeDir="false" afterPath="$PROJECT_DIR$/saves-model/get-team-stats-simplified.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/saves-model/simplifiedTeamFileClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/saves-model/simplifiedTeamFileClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/ANA_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/BOS_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/BUF_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/CAR_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/CBJ_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/CGY_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/CHI_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/COL_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/DAL_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/DET_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/EDM_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/FLA_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/LAK_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/MIN_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/MTL_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/NJD_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/NSH_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/NYI_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/NYR_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/OTT_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/PHI_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/PIT_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/SEA_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/SJS_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/STL_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/TBL_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/TOR_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/UTA_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/VAN_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/VGK_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/WPG_schedule.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/team_schedules/WSH_schedule.csv" beforeDir="false" />
-    </list>
+    <list default="true" id="4f2c6996-ca30-48af-9a52-8ecdcbac8022" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -124,7 +86,7 @@
       <updated>1740759654982</updated>
       <workItem from="1740759656347" duration="2345000" />
       <workItem from="1740777849007" duration="1401000" />
-      <workItem from="1740851754326" duration="4227000" />
+      <workItem from="1740851754326" duration="4824000" />
     </task>
     <servers />
   </component>
